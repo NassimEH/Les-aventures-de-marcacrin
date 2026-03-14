@@ -1351,8 +1351,10 @@ function goToMenu() { transition(() => renderMenu()); }
 // ══════════════════════════════════════════════════════════════
 function showEndingsGallery() {
   const allIds = Object.keys(ENDINGS);
-  const totalUnlocked = countUnlocked(allIds);
-  document.getElementById('gallery-total').textContent = `${totalUnlocked} / ${allIds.length} débloquées`;
+  const esqUnlocked = getEsqAch().length;
+  const totalUnlocked = countUnlocked(allIds) + esqUnlocked;
+  const totalAll = allIds.length + ESQ_ACHIEVEMENTS.length;
+  document.getElementById('gallery-total').textContent = `${totalUnlocked} / ${totalAll} débloquées`;
 
   const content = document.getElementById('gallery-content');
   content.innerHTML = '';
@@ -1379,6 +1381,33 @@ function showEndingsGallery() {
     section.appendChild(grid);
     content.appendChild(section);
   });
+
+  // Esquimaux achievements section
+  const esqBest = parseInt(localStorage.getItem(ESQ_KEY)||'0');
+  const esqSection = document.createElement('div');
+  esqSection.className = 'gallery-mode';
+  esqSection.innerHTML = `<div class="gallery-mode-title">Mini-jeu — Esquimaux <span style="color:var(--dim);font-size:0.85em;">(Record : ${esqBest})</span></div>`;
+  const esqGrid = document.createElement('div');
+  esqGrid.className = 'endings-grid';
+  ESQ_ACHIEVEMENTS.forEach(a => {
+    const unlocked = isEsqAchUnlocked(a.id);
+    const card = document.createElement('div');
+    card.className = 'end-card ' + (unlocked ? 'unlocked' : 'locked');
+    if (unlocked) {
+      card.innerHTML = `<div class="end-badge">${a.badge}</div><div class="end-title">${a.title}</div><div class="end-desc">${a.desc.slice(0,60)}...</div>`;
+      card.onclick = () => {
+        document.getElementById('det-badge').textContent = a.badge;
+        document.getElementById('det-title').textContent = a.title;
+        document.getElementById('det-desc').textContent = a.desc;
+        document.getElementById('end-detail').classList.add('open');
+      };
+    } else {
+      card.innerHTML = `<div class="end-lock">🔒</div><div class="end-title" style="color:var(--dim)">Score ${a.threshold}+</div><div class="end-desc">À débloquer en Mode Esquimaux</div>`;
+    }
+    esqGrid.appendChild(card);
+  });
+  esqSection.appendChild(esqGrid);
+  content.appendChild(esqSection);
 
   showScreen('s-endings');
   setBg('bg-dark'); generateEnv('dark');
@@ -1684,7 +1713,24 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════════════════════════
 //  ESQUIMAUX MINI-GAME
 // ══════════════════════════════════════════════════════════════
-const ESQ_KEY = 'marcacrin2_esq_best';
+const ESQ_KEY     = 'marcacrin2_esq_best';
+const ESQ_ACH_KEY = 'marcacrin2_esq_ach';
+
+const ESQ_ACHIEVEMENTS = [
+  { id:'esq_10',  threshold:10,  badge:'🐷', title:'Premier Coup',          desc:'10 tapes sur Marcacrin. Il commence à regretter ce samedi.' },
+  { id:'esq_25',  threshold:25,  badge:'🧊', title:'Esquimau Confirmé',     desc:'25 tapes. Marcacrin commence à se demander si cette journée était une bonne idée.' },
+  { id:'esq_50',  threshold:50,  badge:'❄️', title:'Le Tapeur',             desc:'50 tapes en 30 secondes. Marcacrin a décidé de ne plus répondre au téléphone.' },
+  { id:'esq_75',  threshold:75,  badge:'🥊', title:'Frappe Légendaire',     desc:'75 tapes. Quelque part à Évry, Marcacrin ressent un mauvais pressentiment sans savoir pourquoi.' },
+  { id:'esq_100', threshold:100, badge:'💥', title:'Cent Coups',            desc:'100 tapes. Exploit officiel. Marcacrin dort d\'un sommeil agité.' },
+  { id:'esq_150', threshold:150, badge:'🔥', title:'Marcacrin Supplié',     desc:'150 tapes. À ce stade c\'est plus un jeu, c\'est de l\'acharnement. Respect quand même.' },
+  { id:'esq_200', threshold:200, badge:'👑', title:'L\'Esquimau Suprême',   desc:'200 tapes en 30 secondes. Marcacrin a officiellement demandé une protection juridique.' },
+];
+
+function getEsqAch() { try { return JSON.parse(localStorage.getItem(ESQ_ACH_KEY)||'[]'); } catch(e) { return []; } }
+function unlockEsqAch(id) { const a=getEsqAch(); if(!a.includes(id)){ a.push(id); localStorage.setItem(ESQ_ACH_KEY,JSON.stringify(a)); return true; } return false; }
+function isEsqAchUnlocked(id) { return getEsqAch().includes(id); }
+function checkEsqAchievements(score) { ESQ_ACHIEVEMENTS.forEach(a => { if(score >= a.threshold) unlockEsqAch(a.id); }); }
+
 let esqScore = 0, esqTimeLeft = 30, esqRunning = false, esqInterval = null, esqFeedbackTO = null;
 
 const ESQ_IMGS = [M.def, M.enerve, M.farceur, M.fleurs, M.chante];
@@ -1758,6 +1804,7 @@ function esqEnd() {
   const prev = parseInt(localStorage.getItem(ESQ_KEY)||'0');
   const isRecord = esqScore > prev;
   if (isRecord) localStorage.setItem(ESQ_KEY, esqScore);
+  checkEsqAchievements(Math.max(esqScore, prev));
   document.getElementById('esq-best-val').textContent = Math.max(esqScore, prev);
   document.getElementById('esq-result-record').classList.toggle('show', isRecord);
   document.getElementById('esq-result').classList.add('show');
