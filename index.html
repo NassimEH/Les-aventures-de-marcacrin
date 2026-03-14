@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les Aventures de Marcacrin 2</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   RESET & VARIABLES
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:    #c9a84c;
+  --blue:    #4db8ff;
+  --brown:   #c8895a;
+  --text:    #f0e8d0;
+  --dim:     #807060;
+  --panel:   rgba(8,4,20,0.88);
+  --border:  rgba(201,168,76,0.3);
+  --r:       16px;
+  --font:    'Georgia', serif;
+  --ui:      'Segoe UI', system-ui, sans-serif;
+}
+
+html, body { width:100%; height:100%; overflow:hidden; background:#030108; color:var(--text); font-family:var(--font); user-select:none; }
+
+/* ═══════════════════════════════════════════════════
+   SCREEN SYSTEM
+═══════════════════════════════════════════════════ */
+.screen { position:fixed; inset:0; z-index:1; display:none; }
+.screen.active { display:flex; }
+#s-menu    { flex-direction:column; align-items:center; justify-content:center; padding:30px 20px; overflow-y:auto; }
+#s-endings { flex-direction:column; align-items:center; overflow-y:auto; padding:24px 20px 40px; }
+#s-game    { flex-direction:column; align-items:center; justify-content:flex-end; padding:0 0 22px; }
+
+/* ═══════════════════════════════════════════════════
+   BACKGROUND CANVAS
+═══════════════════════════════════════════════════ */
+#bg { position:fixed; inset:0; z-index:0; transition:background 1.2s ease; }
+.bg-dark    { background:radial-gradient(ellipse at 50% 60%, rgb(26,10,46) 0%, rgb(5,2,15) 100%); }
+
+.bg-cave    {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><ellipse cx='400' cy='225' rx='320' ry='200' fill='rgb(90,35,8)' opacity='0.3'/><path d='M0 0 L22 50 L6 0 L45 70 L32 0 L72 62 L56 0 L100 78 L82 0 L135 68 L118 0 L162 74 L148 0 L192 62 L175 0 L228 76 L210 0 L265 66 L248 0 L300 72 L282 0 L338 62 L318 0 L370 75 L354 0 L402 68 L386 0 L430 76 L415 0 L462 62 L446 0 L498 72 L480 0 L535 66 L518 0 L568 74 L552 0 L605 62 L588 0 L640 72 L624 0 L675 66 L660 0 L710 74 L695 0 L745 62 L730 0 L772 70 L760 0 L800 0Z' fill='rgb(18,7,2)'/><path d='M0 450 L52 395 L105 420 L158 385 L210 410 L265 378 L318 405 L375 374 L428 402 L485 376 L538 403 L595 372 L648 398 L705 376 L758 400 L800 380 L800 450Z' fill='rgb(12,5,2)'/><circle cx='185' cy='397' r='22' fill='rgb(200,80,0)' opacity='0.2'/><circle cx='185' cy='397' r='8' fill='rgb(255,140,20)' opacity='0.6'/><circle cx='615' cy='390' r='22' fill='rgb(200,80,0)' opacity='0.2'/><circle cx='615' cy='390' r='8' fill='rgb(255,140,20)' opacity='0.6'/><path d='M370 30 L365 95 L375 95Z' fill='rgb(22,9,3)'/><path d='M500 0 L494 75 L506 75Z' fill='rgb(20,8,2)'/><path d='M250 10 L244 80 L256 80Z' fill='rgb(22,9,3)'/><path d='M650 15 L644 82 L656 82Z' fill='rgb(20,8,2)'/></svg>") center/cover no-repeat,
+    radial-gradient(ellipse at 50% 50%, rgb(42,21,5) 0%, rgb(8,3,8) 100%);
+}
+
+.bg-village {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='80' cy='35' r='1.5' fill='white' opacity='0.6'/><circle cx='200' cy='55' r='1' fill='white' opacity='0.5'/><circle cx='480' cy='28' r='1.5' fill='white' opacity='0.7'/><circle cx='700' cy='48' r='1' fill='white' opacity='0.6'/><path d='M115 340 L115 278 L150 244 L185 278 L185 340Z' fill='rgb(18,22,40)'/><rect x='134' y='296' width='13' height='17' fill='rgb(215,162,50)' opacity='0.75'/><path d='M215 340 L215 265 L255 228 L295 265 L295 340Z' fill='rgb(22,28,48)'/><rect x='228' y='284' width='13' height='19' fill='rgb(200,150,45)' opacity='0.7'/><rect x='252' y='284' width='13' height='19' fill='rgb(200,150,45)' opacity='0.6'/><path d='M325 340 L325 258 L370 220 L415 258 L415 340Z' fill='rgb(20,26,44)'/><rect x='340' y='276' width='14' height='21' fill='rgb(218,168,55)' opacity='0.72'/><rect x='368' y='276' width='14' height='21' fill='rgb(205,158,48)' opacity='0.62'/><path d='M445 340 L445 268 L485 232 L525 268 L525 340Z' fill='rgb(16,22,42)'/><rect x='458' y='285' width='13' height='20' fill='rgb(208,158,48)' opacity='0.68'/><path d='M555 340 L555 272 L592 240 L629 272 L629 340Z' fill='rgb(22,27,46)'/><rect x='567' y='288' width='11' height='17' fill='rgb(195,148,44)' opacity='0.65'/><path d='M658 340 L658 278 L692 250 L726 278 L726 340Z' fill='rgb(19,24,43)'/><rect x='669' y='294' width='11' height='16' fill='rgb(198,152,46)' opacity='0.6'/><line x1='65' y1='340' x2='65' y2='292' stroke='rgb(22,28,38)' stroke-width='4'/><ellipse cx='65' cy='283' rx='16' ry='20' fill='rgb(10,20,12)'/><line x1='758' y1='340' x2='758' y2='290' stroke='rgb(22,28,38)' stroke-width='4'/><ellipse cx='758' cy='281' rx='18' ry='22' fill='rgb(9,18,11)'/><rect x='0' y='340' width='800' height='110' fill='rgb(7,10,20)'/><line x1='0' y1='341' x2='800' y2='341' stroke='rgb(28,36,56)' stroke-width='2'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(4,6,18) 0%, rgb(10,16,38) 28%, rgb(25,34,65) 56%, rgb(42,36,20) 80%, rgb(22,18,10) 100%);
+}
+
+.bg-forest  {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='660' cy='72' r='32' fill='rgb(232,226,192)'/><circle cx='100' cy='38' r='1.5' fill='white' opacity='0.8'/><circle cx='235' cy='22' r='1' fill='white' opacity='0.7'/><circle cx='375' cy='45' r='1.5' fill='white' opacity='0.6'/><circle cx='510' cy='28' r='1' fill='white' opacity='0.8'/><circle cx='52' cy='80' r='1' fill='white' opacity='0.5'/><circle cx='310' cy='88' r='1' fill='white' opacity='0.6'/><circle cx='460' cy='75' r='1' fill='white' opacity='0.5'/><path d='M-10 400 L18 298 L46 400 L72 308 L100 400 L128 292 L155 400 L182 305 L210 400 L238 290 L265 400 L292 302 L320 400 L348 288 L375 400 L402 298 L430 400 L458 285 L485 400 L512 298 L540 400 L568 288 L595 400 L622 300 L650 400 L678 290 L705 400 L732 302 L760 400 L788 292 L810 400Z' fill='rgb(5,22,6)'/><path d='M-10 420 L22 310 L55 420 L88 318 L120 420 L152 298 L182 420 L212 312 L244 420 L276 295 L306 420 L338 308 L370 420 L402 295 L432 420 L464 308 L496 420 L528 295 L558 420 L590 308 L622 420 L654 295 L684 420 L716 308 L748 420 L780 295 L810 420Z' fill='rgb(3,14,4)'/><path d='M0 408 Q400 390 800 406 L800 450 L0 450Z' fill='rgb(6,16,6)'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(2,5,10) 0%, rgb(3,12,6) 45%, rgb(5,16,7) 100%);
+}
+
+.bg-shadow  {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><ellipse cx='400' cy='390' rx='130' ry='45' fill='rgb(55,25,78)' opacity='0.38'/><ellipse cx='400' cy='370' rx='85' ry='28' fill='rgb(75,38,98)' opacity='0.28'/><path d='M0 260 Q160 210 300 248 Q400 228 500 250 Q640 212 800 242 L800 450 L0 450Z' fill='rgb(16,6,24)' opacity='0.85'/><ellipse cx='190' cy='325' rx='70' ry='92' fill='rgb(12,4,20)'/><ellipse cx='610' cy='315' rx='75' ry='95' fill='rgb(10,4,18)'/><path d='M0 300 Q60 285 85 315 L85 450 L0 450Z' fill='rgb(8,2,15)'/><path d='M715 295 Q745 275 800 305 L800 450 L715 450Z' fill='rgb(8,2,15)'/><path d='M330 368 Q400 350 470 368 Q470 428 400 438 Q330 428 330 368Z' fill='rgb(45,18,65)' opacity='0.22'/><circle cx='400' cy='390' r='5' fill='rgb(140,60,200)' opacity='0.2'/><circle cx='400' cy='390' r='2' fill='rgb(180,80,255)' opacity='0.35'/></svg>") center/cover no-repeat,
+    radial-gradient(ellipse at 50% 70%, rgb(38,8,52) 0%, rgb(7,2,16) 55%, rgb(2,0,8) 100%);
+}
+
+.bg-river   {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='400' cy='52' r='40' fill='rgb(232,226,192)'/><ellipse cx='400' cy='52' rx='75' ry='60' fill='rgb(255,240,160)' opacity='0.08'/><circle cx='95' cy='38' r='1.5' fill='white' opacity='0.7'/><circle cx='215' cy='62' r='1' fill='white' opacity='0.6'/><circle cx='578' cy='35' r='1.5' fill='white' opacity='0.8'/><circle cx='718' cy='58' r='1' fill='white' opacity='0.5'/><circle cx='310' cy='28' r='1' fill='white' opacity='0.7'/><path d='M0 235 Q200 205 400 220 Q600 205 800 222 L800 450 L0 450Z' fill='rgb(8,22,38)'/><path d='M0 285 Q120 298 195 318 L195 450 L0 450Z' fill='rgb(10,26,16)'/><path d='M605 312 Q680 292 800 300 L800 450 L605 450Z' fill='rgb(9,24,14)'/><path d='M195 318 Q280 348 400 338 Q520 348 605 318 L605 450 L195 450Z' fill='rgb(4,22,52)'/><ellipse cx='400' cy='62' rx='22' ry='210' fill='rgb(195,215,240)' opacity='0.1'/><path d='M200 325 Q400 358 600 325' stroke='rgb(75,155,215)' stroke-width='2' fill='none' opacity='0.35'/><path d='M205 338 Q400 365 595 338' stroke='rgb(75,155,215)' stroke-width='1.5' fill='none' opacity='0.25'/><path d='M80 265 L75 310 L88 310 L82 290 L95 265Z' fill='rgb(8,30,12)'/><path d='M700 268 L695 312 L708 312 L702 292 L715 268Z' fill='rgb(7,28,11)'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(2,7,18) 0%, rgb(4,12,32) 38%, rgb(7,18,44) 100%);
+}
+
+.bg-desert  {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='620' cy='182' r='58' fill='rgb(255,200,45)' opacity='0.92'/><ellipse cx='620' cy='182' rx='95' ry='78' fill='rgb(255,155,15)' opacity='0.18'/><ellipse cx='620' cy='182' rx='145' ry='120' fill='rgb(255,120,5)' opacity='0.08'/><path d='M0 265 Q100 232 200 258 Q350 218 500 248 Q650 215 800 242 L800 450 L0 450Z' fill='rgb(88,38,6)'/><path d='M0 318 Q150 285 275 312 Q420 275 558 305 Q680 280 800 300 L800 450 L0 450Z' fill='rgb(118,52,10)'/><path d='M0 372 Q100 348 200 368 Q350 338 500 362 Q650 340 800 358 L800 450 L0 450Z' fill='rgb(145,68,15)'/><path d='M0 415 Q200 396 400 408 Q600 390 800 405 L800 450 L0 450Z' fill='rgb(162,82,20)'/><line x1='0' y1='188' x2='800' y2='188' stroke='rgb(255,175,75)' stroke-width='1' opacity='0.12'/><line x1='0' y1='195' x2='800' y2='195' stroke='rgb(255,175,75)' stroke-width='1' opacity='0.08'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(12,4,0) 0%, rgb(75,18,0) 22%, rgb(168,55,4) 52%, rgb(225,105,8) 76%, rgb(195,125,18) 100%);
+}
+
+.bg-ruins   {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='98' cy='48' r='1.5' fill='white' opacity='0.6'/><circle cx='238' cy='32' r='1' fill='white' opacity='0.7'/><circle cx='448' cy='52' r='1.5' fill='white' opacity='0.5'/><circle cx='628' cy='38' r='1' fill='white' opacity='0.6'/><circle cx='758' cy='22' r='1.5' fill='white' opacity='0.7'/><path d='M0 285 Q400 258 800 272 L800 450 L0 450Z' fill='rgb(58,28,6)'/><rect x='128' y='178' width='22' height='130' fill='rgb(33,16,4)'/><rect x='123' y='172' width='32' height='12' fill='rgb(38,20,5)'/><rect x='126' y='278' width='26' height='10' fill='rgb(38,20,5)'/><rect x='275' y='192' width='18' height='105' fill='rgb(30,15,4)'/><rect x='270' y='186' width='28' height='10' fill='rgb(36,18,5)'/><rect x='272' y='272' width='22' height='10' fill='rgb(36,18,5)'/><rect x='415' y='175' width='24' height='122' fill='rgb(36,18,5)'/><rect x='410' y='169' width='34' height='12' fill='rgb(40,21,6)'/><rect x='413' y='272' width='26' height='10' fill='rgb(40,21,6)'/><rect x='565' y='186' width='20' height='98' fill='rgb(32,16,4)'/><rect x='560' y='180' width='30' height='10' fill='rgb(37,19,5)'/><rect x='672' y='198' width='18' height='88' fill='rgb(34,17,4)' transform='rotate(7,681,242)'/><path d='M115 298 L148 308 L195 300 L240 306 L285 298' stroke='rgb(43,21,5)' stroke-width='9' fill='none' stroke-linecap='round'/><path d='M375 302 L408 294 L440 308 L478 300 L515 305' stroke='rgb(40,20,5)' stroke-width='7' fill='none' stroke-linecap='round'/><path d='M0 342 Q200 322 400 336 Q600 318 800 334 L800 450 L0 450Z' fill='rgb(78,38,9)'/><path d='M0 408 Q200 388 400 400 Q600 382 800 396 L800 450 L0 450Z' fill='rgb(98,50,12)'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(4,2,0) 0%, rgb(32,12,0) 38%, rgb(65,28,4) 72%, rgb(88,40,8) 100%);
+}
+
+.bg-oasis   {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='680' cy='62' r='44' fill='rgb(255,195,38)' opacity='0.92'/><ellipse cx='680' cy='62' rx='78' ry='62' fill='rgb(255,158,18)' opacity='0.16'/><path d='M0 342 Q400 315 800 335 L800 450 L0 450Z' fill='rgb(168,118,38)'/><path d='M0 392 Q400 370 800 385 L800 450 L0 450Z' fill='rgb(188,138,48)'/><ellipse cx='400' cy='356' rx='148' ry='36' fill='rgb(28,88,128)'/><ellipse cx='400' cy='354' rx='125' ry='28' fill='rgb(38,108,158)'/><ellipse cx='392' cy='350' rx='82' ry='18' fill='rgb(58,138,182)' opacity='0.7'/><line x1='182' y1='360' x2='182' y2='248' stroke='rgb(98,62,18)' stroke-width='5'/><path d='M182 250 Q164 226 138 218 Q166 232 170 248Z' fill='rgb(18,78,28)'/><path d='M182 256 Q202 228 230 220 Q206 236 200 254Z' fill='rgb(14,72,24)'/><path d='M182 262 Q162 248 135 246 Q165 253 176 264Z' fill='rgb(16,75,26)'/><line x1='278' y1='360' x2='278' y2='236' stroke='rgb(102,66,21)' stroke-width='5'/><path d='M278 238 Q258 212 230 205 Q262 222 265 238Z' fill='rgb(20,80,30)'/><path d='M278 244 Q298 216 326 208 Q302 225 296 243Z' fill='rgb(16,76,26)'/><path d='M278 250 Q256 236 228 234 Q260 242 270 253Z' fill='rgb(18,78,28)'/><line x1='522' y1='360' x2='522' y2='234' stroke='rgb(96,61,17)' stroke-width='5'/><path d='M522 236 Q502 210 474 203 Q506 220 508 236Z' fill='rgb(17,77,27)'/><path d='M522 242 Q544 214 572 206 Q547 223 540 241Z' fill='rgb(21,81,31)'/><path d='M522 248 Q500 234 472 232 Q504 240 514 251Z' fill='rgb(19,79,29)'/><line x1='618' y1='360' x2='618' y2='250' stroke='rgb(100,64,19)' stroke-width='5'/><path d='M618 252 Q598 226 570 218 Q602 235 604 252Z' fill='rgb(18,78,28)'/><path d='M618 258 Q640 232 668 224 Q643 240 636 257Z' fill='rgb(15,75,25)'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(4,18,42) 0%, rgb(8,32,65) 18%, rgb(12,60,80) 46%, rgb(18,78,58) 72%, rgb(28,78,38) 100%);
+}
+
+.bg-mountain{
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='680' cy='62' r='29' fill='rgb(228,222,198)'/><circle cx='52' cy='28' r='1.5' fill='white' opacity='0.9'/><circle cx='138' cy='52' r='1' fill='white' opacity='0.7'/><circle cx='218' cy='22' r='1.5' fill='white' opacity='0.8'/><circle cx='318' cy='45' r='1' fill='white' opacity='0.6'/><circle cx='398' cy='28' r='1.5' fill='white' opacity='0.9'/><circle cx='488' cy='48' r='1' fill='white' opacity='0.7'/><circle cx='578' cy='20' r='1.5' fill='white' opacity='0.8'/><circle cx='758' cy='40' r='1' fill='white' opacity='0.6'/><circle cx='98' cy='86' r='1' fill='white' opacity='0.5'/><circle cx='258' cy='92' r='1' fill='white' opacity='0.6'/><circle cx='448' cy='80' r='1' fill='white' opacity='0.5'/><circle cx='618' cy='90' r='1' fill='white' opacity='0.6'/><path d='M0 312 L78 195 L152 268 L232 162 L312 238 L392 140 L472 218 L552 158 L632 228 L712 174 L800 235 L800 450 L0 450Z' fill='rgb(12,18,42)'/><polygon points='372,176 392,140 412,176' fill='rgb(218,226,255)'/><polygon points='532,192 552,158 572,192' fill='rgb(212,222,252)'/><polygon points='692,206 712,174 732,206' fill='rgb(215,224,255)'/><polygon points='212,200 232,162 252,200' fill='rgb(218,226,255)'/><polygon points='72,222 92,195 112,222' fill='rgb(212,222,250)'/><path d='M0 368 L105 285 L212 338 L320 278 L425 320 L532 268 L638 306 L742 272 L800 298 L800 450 L0 450Z' fill='rgb(6,10,24)'/><path d='M0 416 Q200 394 400 408 Q600 388 800 404 L800 450 L0 450Z' fill='rgb(215,226,255)' opacity='0.9'/><path d='M0 430 Q200 422 400 427 Q600 418 800 424 L800 450 L0 450Z' fill='white' opacity='0.55'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(2,3,10) 0%, rgb(4,9,28) 32%, rgb(8,15,45) 68%, rgb(13,20,42) 100%);
+}
+
+.bg-icecave {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><ellipse cx='400' cy='180' rx='360' ry='255' fill='rgb(75,158,218)' opacity='0.1'/><ellipse cx='400' cy='120' rx='285' ry='175' fill='rgb(115,198,255)' opacity='0.07'/><path d='M0 0 L18 58 L38 18 L58 78 L88 28 L112 92 L138 22 L162 82 L192 12 L218 72 L248 18 L276 88 L302 20 L330 80 L358 16 L382 76 L408 12 L432 73 L460 20 L488 86 L516 16 L542 76 L570 20 L598 83 L626 16 L652 73 L680 20 L708 88 L736 16 L763 76 L788 22 L800 0Z' fill='rgb(148,208,238)' opacity='0.68'/><path d='M0 0 L14 43 L28 8 L48 53 L73 6 L92 58 L118 10 L142 50 L168 6 L192 46 L218 8 L246 56 L270 6 L296 48 L323 8 L348 50 L373 6 L398 46 L426 8 L453 58 L478 6 L503 50 L528 8 L556 56 L580 6 L606 48 L630 8 L658 56 L682 6 L708 50 L733 6 L760 53 L783 6 L800 0Z' fill='rgb(198,233,255)' opacity='0.58'/><path d='M0 450 L18 396 L38 420 L66 388 L93 412 L122 383 L150 410 L178 386 L206 412 L236 384 L262 410 L290 386 L318 412 L348 383 L375 410 L402 386 L429 412 L458 384 L486 410 L514 384 L540 412 L568 384 L596 410 L624 386 L651 412 L680 382 L708 410 L736 383 L762 410 L800 386 L800 450Z' fill='rgb(158,213,243)' opacity='0.62'/><path d='M0 450 L26 406 L52 426 L82 398 L110 420 L138 398 L165 422 L195 398 L222 422 L250 396 L278 422 L308 397 L335 422 L362 396 L390 422 L420 397 L448 422 L476 396 L503 422 L530 396 L558 422 L588 397 L615 422 L642 396 L670 422 L700 396 L728 422 L756 396 L782 422 L800 397 L800 450Z' fill='rgb(198,232,255)' opacity='0.52'/><circle cx='250' cy='220' r='35' fill='rgb(80,170,230)' opacity='0.08'/><circle cx='550' cy='200' r='45' fill='rgb(80,170,230)' opacity='0.08'/></svg>") center/cover no-repeat,
+    radial-gradient(ellipse at 50% 38%, rgb(18,58,118) 0%, rgb(5,16,52) 48%, rgb(2,6,28) 100%);
+}
+
+.bg-cliff   {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><circle cx='645' cy='55' r='26' fill='rgb(222,218,192)'/><circle cx='78' cy='33' r='1.5' fill='white' opacity='0.8'/><circle cx='198' cy='50' r='1' fill='white' opacity='0.7'/><circle cx='348' cy='26' r='1.5' fill='white' opacity='0.9'/><circle cx='498' cy='43' r='1' fill='white' opacity='0.6'/><circle cx='758' cy='36' r='1.5' fill='white' opacity='0.7'/><circle cx='420' cy='85' r='1' fill='white' opacity='0.5'/><circle cx='560' cy='70' r='1' fill='white' opacity='0.6'/><path d='M0 78 L0 450 L228 450 L228 338 L188 298 L205 248 L172 198 L212 158 L176 128 L202 98 L182 78Z' fill='rgb(24,26,36)'/><path d='M0 78 L182 78 L202 98 L175 128 L212 160 L170 200 L205 250 L186 300 L228 340 L228 450 L148 450 L148 348 L118 302 L142 252 L116 202 L150 160 L114 126 L140 98 L118 76 L0 76Z' fill='rgb(32,34,45)'/><path d='M0 76 L118 76 L142 98 L116 126 L152 162 L118 204 L145 254 L120 306 L150 352 L150 450 L0 450Z' fill='rgb(16,18,28)'/><path d='M228 282 Q400 245 800 262 L800 450 L228 450Z' fill='rgb(9,12,22)'/><path d='M228 332 Q400 302 800 322 L800 450 L228 450Z' fill='rgb(13,16,28)'/><path d='M228 402 Q400 380 800 395 L800 450 L228 450Z' fill='rgb(192,208,238)' opacity='0.68'/><path d='M195 342 L215 335 L235 340 L255 333 L270 342' stroke='rgb(198,214,242)' stroke-width='3' fill='none' opacity='0.48'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(2,4,14) 0%, rgb(7,10,28) 38%, rgb(11,16,40) 68%, rgb(16,22,48) 100%);
+}
+
+.bg-pitch   {
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450' preserveAspectRatio='xMidYMid slice'><rect x='0' y='220' width='800' height='230' fill='rgb(28,105,28)'/><rect x='0' y='220' width='800' height='18' fill='rgb(36,125,36)'/><rect x='0' y='256' width='800' height='18' fill='rgb(36,125,36)'/><rect x='0' y='292' width='800' height='18' fill='rgb(36,125,36)'/><rect x='0' y='328' width='800' height='18' fill='rgb(36,125,36)'/><rect x='0' y='364' width='800' height='18' fill='rgb(36,125,36)'/><rect x='0' y='400' width='800' height='18' fill='rgb(36,125,36)'/><line x1='400' y1='220' x2='400' y2='450' stroke='white' stroke-width='3' opacity='0.5'/><circle cx='400' cy='335' r='65' stroke='white' stroke-width='3' fill='none' opacity='0.45'/><circle cx='400' cy='335' r='5' fill='white' opacity='0.5'/><rect x='35' y='260' width='130' height='88' stroke='white' stroke-width='2' fill='none' opacity='0.42'/><rect x='635' y='260' width='130' height='88' stroke='white' stroke-width='2' fill='none' opacity='0.42'/><rect x='35' y='284' width='58' height='42' stroke='white' stroke-width='1.5' fill='none' opacity='0.35'/><rect x='707' y='284' width='58' height='42' stroke='white' stroke-width='1.5' fill='none' opacity='0.35'/><rect x='0' y='60' width='68' height='162' fill='rgb(22,22,42)' opacity='0.88'/><rect x='732' y='60' width='68' height='162' fill='rgb(22,22,42)' opacity='0.88'/><rect x='68' y='110' width='664' height='112' fill='rgb(18,18,38)' opacity='0.8'/><rect x='45' y='22' width='6' height='62' fill='rgb(55,55,78)'/><ellipse cx='48' cy='20' rx='22' ry='7' fill='rgb(255,255,180)' opacity='0.9'/><rect x='749' y='22' width='6' height='62' fill='rgb(55,55,78)'/><ellipse cx='752' cy='20' rx='22' ry='7' fill='rgb(255,255,180)' opacity='0.9'/><ellipse cx='400' cy='220' rx='400' ry='15' fill='rgb(32,115,32)'/></svg>") center/cover no-repeat,
+    linear-gradient(to bottom, rgb(4,8,24) 0%, rgb(8,14,40) 30%, rgb(10,18,50) 50%, rgb(8,40,8) 62%, rgb(14,60,14) 100%);
+}
+
+.char-grichon { filter:drop-shadow(0 0 12px rgba(255,68,0,0.6)); }
+
+.star { position:absolute; border-radius:50%; background:#fff; animation:twinkle var(--d,3s) ease-in-out infinite; opacity:var(--o,0.5); }
+@keyframes twinkle { 0%,100%{opacity:var(--o,0.5);transform:scale(1)} 50%{opacity:0.1;transform:scale(0.5)} }
+.env-moon  { position:absolute; top:7%; right:9%; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 40% 35%,#fffde0,#e8d98a); box-shadow:0 0 28px 10px rgba(255,240,120,0.18); animation:float 6s ease-in-out infinite; }
+.env-firefly{ position:absolute; width:4px; height:4px; border-radius:50%; background:#aeff70; box-shadow:0 0 8px #aeff70; animation:firefly var(--d,4s) ease-in-out infinite; }
+.env-sun   { position:absolute; top:8%; right:10%; width:70px; height:70px; border-radius:50%; background:radial-gradient(circle at 40% 35%,#fff7aa,#ff9900); box-shadow:0 0 50px 20px rgba(255,150,0,0.4); animation:float 8s ease-in-out infinite; }
+.env-snowflake{ position:absolute; font-size:14px; animation:snow var(--d,8s) linear infinite; opacity:0.6; }
+@keyframes firefly{0%,100%{transform:translate(0,0);opacity:0}25%{opacity:1}50%{transform:translate(var(--dx,20px),var(--dy,-15px));opacity:0.8}75%{opacity:0.3}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes snow{0%{transform:translateY(-20px) rotate(0);opacity:0}10%{opacity:0.6}90%{opacity:0.4}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* ═══════════════════════════════════════════════════
+   MENU SCREEN
+═══════════════════════════════════════════════════ */
+.menu-title { text-align:center; margin-bottom:32px; }
+.menu-title .ep  { font-family:var(--ui); font-size:0.7rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:6px; }
+.menu-title .name{ font-family:var(--ui); font-size:clamp(1.8rem,4.5vw,2.8rem); font-weight:900; color:#fff; text-shadow:0 0 30px rgba(200,160,255,0.4); display:block; line-height:1.1; }
+.menu-title .sub { font-family:var(--font); font-size:clamp(0.8rem,2vw,0.95rem); color:var(--dim); font-style:italic; display:block; margin-top:4px; }
+
+.mode-cards { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-bottom:24px; }
+
+.mode-card {
+  width:220px; min-height:280px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r); padding:20px 16px 16px;
+  cursor:pointer; display:flex; flex-direction:column; align-items:center;
+  transition:all 0.3s ease; position:relative; overflow:hidden;
+  backdrop-filter:blur(10px);
+}
+.mode-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.04),transparent 60%); }
+.mode-card:hover { transform:translateY(-6px); border-color:var(--c,var(--gold)); box-shadow:0 12px 40px rgba(0,0,0,0.5),0 0 20px rgba(var(--cr,201,168,76),0.15); }
+.mode-card .card-char { height:110px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:12px; }
+.mode-card .card-char img { max-height:110px; max-width:100px; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5)); }
+.mode-card .card-num  { font-family:var(--ui); font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--c,var(--gold)); margin-bottom:6px; }
+.mode-card .card-title{ font-family:var(--ui); font-size:0.9rem; font-weight:700; color:#fff; text-align:center; line-height:1.3; margin-bottom:6px; }
+.mode-card .card-sub  { font-size:0.75rem; color:var(--dim); text-align:center; line-height:1.4; flex:1; }
+.mode-card .card-prog { margin-top:12px; font-family:var(--ui); font-size:0.68rem; color:var(--c,var(--gold)); letter-spacing:0.05em; }
+.mode-card .card-badge{ position:absolute; top:10px; right:12px; font-size:0.6rem; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:var(--gold); border-radius:20px; padding:2px 8px; font-family:var(--ui); letter-spacing:0.05em; }
+
+.menu-extras { display:flex; gap:12px; }
+.menu-btn { padding:11px 28px; border:1px solid var(--border); border-radius:30px; background:rgba(201,168,76,0.08); color:var(--gold); font-family:var(--ui); font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all 0.3s; }
+.menu-btn:hover { background:rgba(201,168,76,0.2); transform:scale(1.04); }
+
+/* ═══════════════════════════════════════════════════
+   ENDINGS GALLERY
+═══════════════════════════════════════════════════ */
+.gallery-header { display:flex; align-items:center; gap:16px; margin-bottom:28px; width:100%; max-width:860px; padding-top:8px; }
+.back-btn { padding:8px 20px; border:1px solid var(--border); border-radius:30px; background:transparent; color:var(--dim); font-family:var(--ui); font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; transition:all 0.25s; }
+.back-btn:hover { border-color:var(--gold); color:var(--gold); }
+.gallery-header h2 { font-family:var(--ui); font-size:1.1rem; font-weight:700; color:#fff; }
+.gallery-header .total { margin-left:auto; font-family:var(--ui); font-size:0.75rem; color:var(--dim); }
+
+.gallery-mode { width:100%; max-width:860px; margin-bottom:32px; }
+.gallery-mode-title { font-family:var(--ui); font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.endings-grid { display:flex; flex-wrap:wrap; gap:12px; }
+
+.end-card {
+  width:160px; min-height:180px;
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
+  padding:16px 12px; display:flex; flex-direction:column; align-items:center;
+  transition:all 0.3s; position:relative; overflow:hidden;
+}
+.end-card.unlocked { cursor:pointer; }
+.end-card.unlocked:hover { transform:translateY(-4px); border-color:var(--gold); }
+.end-card.locked { opacity:0.5; }
+.end-card .end-badge { font-size:2.2rem; margin-bottom:10px; }
+.end-card .end-title { font-family:var(--ui); font-size:0.78rem; font-weight:700; text-align:center; color:#fff; line-height:1.3; margin-bottom:6px; }
+.end-card .end-desc  { font-size:0.68rem; color:var(--dim); text-align:center; line-height:1.4; }
+.end-card .end-lock  { font-size:1.8rem; margin-bottom:10px; color:var(--dim); }
+.end-card .end-mode-tag { position:absolute; top:6px; right:8px; font-size:0.55rem; font-family:var(--ui); letter-spacing:0.05em; color:var(--dim); }
+
+/* End detail popup */
+#end-detail { position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); }
+#end-detail.open { display:flex; }
+.end-detail-box { background:rgba(10,5,25,0.97); border:1px solid rgba(201,168,76,0.4); border-radius:var(--r); padding:36px 32px; max-width:420px; width:90%; text-align:center; animation:pop 0.3s cubic-bezier(.17,.67,.35,1.4) both; }
+@keyframes pop { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
+.end-detail-box .big-badge { font-size:3.5rem; margin-bottom:12px; }
+.end-detail-box .det-label { font-family:var(--ui); font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+.end-detail-box .det-title { font-family:var(--ui); font-size:1.4rem; font-weight:900; color:#fff; margin-bottom:14px; }
+.end-detail-box .det-desc  { font-size:0.88rem; line-height:1.7; color:#c0b090; margin-bottom:24px; }
+.end-detail-box .det-close { padding:10px 28px; border:1px solid var(--border); border-radius:30px; background:transparent; color:var(--gold); font-family:var(--ui); font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; transition:all 0.25s; }
+.end-detail-box .det-close:hover { background:rgba(201,168,76,0.15); }
+
+/* ═══════════════════════════════════════════════════
+   GAME SCREEN
+═══════════════════════════════════════════════════ */
+#progress-bar {
+  position:fixed; top:14px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:8px;
+  background:var(--panel); border:1px solid var(--border); border-radius:30px;
+  padding:5px 14px; font-family:var(--ui); font-size:0.68rem; letter-spacing:0.08em; color:var(--dim);
+  backdrop-filter:blur(8px); z-index:20;
+}
+#progress-bar .dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.12); transition:background 0.4s; }
+#progress-bar .dot.done    { background:var(--gold); box-shadow:0 0 5px var(--gold); }
+#progress-bar .dot.current { background:var(--blue); box-shadow:0 0 5px var(--blue); animation:pdot 1s ease-in-out infinite; }
+@keyframes pdot{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+
+#menu-toggle {
+  position:fixed; top:14px; left:16px;
+  background:var(--panel); border:1px solid var(--border); border-radius:30px;
+  padding:5px 14px; font-family:var(--ui); font-size:0.68rem; letter-spacing:0.08em; color:var(--dim);
+  cursor:pointer; z-index:20; transition:all 0.25s; backdrop-filter:blur(8px);
+}
+#menu-toggle:hover { color:var(--gold); border-color:rgba(201,168,76,0.5); }
+
+/* ═══════════════════════════════════════════════════
+   STAGE & CHARACTERS
+═══════════════════════════════════════════════════ */
+#stage {
+  position:fixed; bottom:208px; left:0; right:0;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  padding:0 7%; pointer-events:none; z-index:6;
+}
+.char-slot { display:flex; flex-direction:column; align-items:center; transition:opacity 0.5s,transform 0.5s; }
+.char-slot.hidden { opacity:0; transform:translateY(40px); pointer-events:none; }
+.char-slot.dimmed { opacity:0.28; filter:grayscale(0.4); }
+.char-slot.active { filter:drop-shadow(0 0 18px var(--glow,#fff)); }
+.char-slot.active img { animation:talk 0.45s ease-in-out infinite alternate; }
+@keyframes talk{from{transform:translateY(0) scale(1)}to{transform:translateY(-8px) scale(1.04)}}
+
+.char-slot img { max-height:150px; max-width:150px; object-fit:contain; display:block; }
+.char-name {
+  margin-top:6px; font-family:var(--ui); font-size:0.68rem; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; padding:2px 10px;
+  border-radius:20px; background:var(--panel); border:1px solid var(--border);
+}
+.char-name.marcacrin { color:var(--brown); border-color:rgba(200,137,90,0.4); }
+.char-name.chaos     { color:var(--blue);  border-color:rgba(77,184,255,0.4); }
+
+/* ═══════════════════════════════════════════════════
+   HOTSPOT NAVIGATION
+═══════════════════════════════════════════════════ */
+#hotspot-zone {
+  position:fixed; inset:0; bottom:208px; z-index:5;
+  pointer-events:none;
+}
+#hotspot-zone.active { pointer-events:all; }
+
+.hotspot {
+  position:absolute; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  border:2px solid rgba(201,168,76,0.12); border-radius:20px;
+  transition:all 0.3s ease; opacity:0; transform:scale(0.96);
+}
+.hotspot.visible { opacity:1; transform:scale(1); }
+
+.hotspot:hover { background:rgba(201,168,76,0.07); border-color:rgba(201,168,76,0.45); }
+.hotspot-icon  { font-size:2rem; opacity:0.35; transition:all 0.3s; filter:drop-shadow(0 0 8px rgba(201,168,76,0.4)); }
+.hotspot-label {
+  font-family:var(--ui); font-size:0.78rem; letter-spacing:0.05em;
+  background:rgba(8,4,20,0.88); border:1px solid rgba(201,168,76,0.3); border-radius:20px;
+  padding:5px 14px; opacity:0; transition:opacity 0.25s; white-space:nowrap; color:var(--text);
+}
+.hotspot:hover .hotspot-icon  { opacity:0.95; transform:scale(1.15); }
+.hotspot:hover .hotspot-label { opacity:1; }
+.hotspot-pulse { animation:hpulse 2.5s ease-in-out infinite; }
+@keyframes hpulse{0%,100%{border-color:rgba(201,168,76,0.1)}50%{border-color:rgba(201,168,76,0.3)}}
+
+/* ═══════════════════════════════════════════════════
+   DIALOG PANEL
+═══════════════════════════════════════════════════ */
+#dialog-panel {
+  width:min(800px,94vw); position:relative; z-index:10;
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
+  padding:18px 24px 14px; backdrop-filter:blur(14px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04);
+  cursor:pointer; transition:opacity 0.4s;
+}
+#dialog-panel::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.025),transparent 60%); border-radius:var(--r); pointer-events:none; }
+
+#speaker-tag {
+  display:inline-block; font-family:var(--ui); font-size:0.68rem; font-weight:800;
+  letter-spacing:0.12em; text-transform:uppercase; padding:2px 12px; border-radius:12px; margin-bottom:9px; transition:all 0.3s;
+}
+#speaker-tag.narr      { background:rgba(201,168,76,0.12); color:var(--gold); border:1px solid rgba(201,168,76,0.3); }
+#speaker-tag.marcacrin { background:rgba(200,137,90,0.15); color:#e8a870; border:1px solid rgba(200,137,90,0.35); }
+#speaker-tag.chaos     { background:rgba(77,184,255,0.15);  color:var(--blue);  border:1px solid rgba(77,184,255,0.35); }
+
+#dialog-text { font-size:clamp(0.9rem,2vw,1.05rem); line-height:1.72; min-height:3.3em; color:var(--text); }
+.cursor-blink { display:inline-block; width:2px; height:0.9em; background:var(--gold); margin-left:2px; vertical-align:middle; animation:blink 0.8s step-end infinite; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+#continue-hint { text-align:right; margin-top:6px; font-family:var(--ui); font-size:0.68rem; color:var(--dim); opacity:0; transition:opacity 0.5s; }
+#continue-hint.visible { opacity:1; animation:pulse-hint 1.5s ease-in-out infinite; }
+@keyframes pulse-hint{0%,100%{opacity:0.45}50%{opacity:1}}
+
+/* ═══════════════════════════════════════════════════
+   ENDING REVEAL (in-game)
+═══════════════════════════════════════════════════ */
+#ending-reveal {
+  position:fixed; inset:0; z-index:100; display:none;
+  flex-direction:column; align-items:center; justify-content:center; padding:40px;
+  background:rgba(0,0,0,0);
+  transition:background 0.8s ease;
+}
+#ending-reveal.open { display:flex; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); }
+
+.rev-box {
+  background:rgba(8,4,22,0.97); border:1px solid rgba(201,168,76,0.4); border-radius:var(--r);
+  padding:40px 36px; max-width:480px; width:90%; text-align:center;
+  animation:pop 0.5s cubic-bezier(.17,.67,.35,1.4) both;
+}
+.rev-box .rev-badge  { font-size:4rem; margin-bottom:14px; filter:drop-shadow(0 0 20px rgba(255,220,100,0.5)); animation:badge-in 0.5s 0.15s cubic-bezier(.17,.67,.35,1.5) both; }
+@keyframes badge-in{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.rev-box .rev-label  { font-family:var(--ui); font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+.rev-box .rev-title  { font-family:var(--ui); font-size:clamp(1.2rem,3.5vw,1.9rem); font-weight:900; color:#fff; text-shadow:0 0 20px rgba(200,160,255,0.3); margin-bottom:14px; }
+.rev-box .rev-desc   { font-size:0.88rem; line-height:1.75; color:#c0b090; margin-bottom:28px; }
+.rev-box .rev-btns   { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.rev-box .rev-btn    { padding:12px 28px; border:1px solid var(--border); border-radius:30px; background:rgba(201,168,76,0.08); color:var(--gold); font-family:var(--ui); font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all 0.25s; }
+.rev-box .rev-btn:hover { background:rgba(201,168,76,0.22); transform:scale(1.04); }
+.rev-box .rev-btn.secondary { color:var(--dim); border-color:rgba(255,255,255,0.12); }
+.rev-box .rev-btn.secondary:hover { color:var(--text); }
+.rev-close { position:absolute; top:14px; right:18px; background:none; border:none; color:rgba(255,255,255,0.35); font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px; border-radius:6px; transition:color 0.2s; }
+.rev-close:hover { color:rgba(255,255,255,0.8); }
+
+/* ═══════════════════════════════════════════════════
+   OVERLAY TRANSITION
+═══════════════════════════════════════════════════ */
+#overlay { position:fixed; inset:0; z-index:90; background:#000; opacity:0; pointer-events:none; transition:opacity 0.45s ease; }
+#overlay.on { opacity:1; pointer-events:all; }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════ */
+@media(max-width:600px){
+  #stage{padding:0 2%;bottom:196px;}
+  .char-slot img{max-height:110px;max-width:110px;}
+  .mode-cards{flex-direction:column;align-items:center;}
+  .mode-card{width:min(300px,90vw);min-height:auto;flex-direction:row;gap:16px;padding:16px;}
+  .mode-card .card-char{height:80px;width:80px;flex-shrink:0;margin-bottom:0;}
+  .mode-card .card-char img{max-height:80px;max-width:70px;}
+}
+
+/* ═══════════════════════════════════════════════════
+   ESQUIMAUX MODE
+   ═══════════════════════════════════════════════════ */
+#s-esquimaux { flex-direction:column; align-items:center; justify-content:center; padding:24px 20px; gap:20px; }
+.esq-back { position:absolute; top:18px; left:18px; background:none; border:1px solid var(--border); color:var(--dim); font-family:var(--ui); font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; padding:8px 16px; border-radius:20px; cursor:pointer; }
+.esq-back:hover { color:var(--text); }
+.esq-title { font-family:var(--ui); font-size:clamp(1.1rem,4vw,1.6rem); font-weight:900; color:var(--gold); letter-spacing:0.1em; text-transform:uppercase; text-align:center; }
+.esq-subtitle { font-size:0.82rem; color:var(--dim); text-align:center; }
+.esq-hud { display:flex; gap:40px; align-items:flex-end; justify-content:center; }
+.esq-hud-box { text-align:center; }
+.esq-hud-label { font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--dim); margin-bottom:4px; }
+.esq-hud-val { font-family:var(--ui); font-size:2.8rem; font-weight:900; line-height:1; }
+#esq-timer { color:var(--gold); }
+#esq-timer.urgent { color:#ff4444; animation:esq-pulse 0.4s ease-in-out infinite; }
+@keyframes esq-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+#esq-score-val { color:#fff; }
+.esq-best-line { font-size:0.75rem; color:var(--dim); text-align:center; }
+.esq-best-line span { color:var(--gold); font-family:var(--ui); font-weight:700; }
+#esq-char {
+  cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation;
+  display:flex; align-items:center; justify-content:center;
+  filter:drop-shadow(0 0 22px rgba(201,168,76,0.25));
+  transition:transform 0.08s, filter 0.08s;
+}
+#esq-char.hit { transform:scale(0.88); filter:drop-shadow(0 0 32px rgba(255,200,80,0.9)); }
+#esq-char img { max-height:240px; max-width:180px; pointer-events:none; }
+#esq-feedback { height:30px; text-align:center; font-family:var(--ui); font-size:1rem; font-weight:900; color:var(--gold); opacity:0; transition:opacity 0.15s; }
+#esq-feedback.pop { opacity:1; }
+.esq-btn { padding:13px 38px; border:1px solid var(--gold); border-radius:30px; background:rgba(201,168,76,0.1); color:var(--gold); font-family:var(--ui); font-size:0.82rem; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.esq-btn:hover { background:rgba(201,168,76,0.25); transform:scale(1.04); }
+#esq-result { display:none; flex-direction:column; align-items:center; gap:14px; text-align:center; }
+#esq-result.show { display:flex; }
+#esq-result-score { font-family:var(--ui); font-size:4rem; font-weight:900; color:var(--gold); }
+#esq-result-label { font-size:0.85rem; color:var(--dim); }
+#esq-result-record { font-size:0.9rem; color:#adf0a0; font-family:var(--ui); display:none; }
+#esq-result-record.show { display:block; }
+.esq-card { border:1px dashed rgba(201,168,76,0.3); background:rgba(201,168,76,0.04); }
+.esq-card:hover { border-color:rgba(201,168,76,0.7); }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div id="bg" class="bg-dark"></div>
+
+<!-- SCREEN: MENU -->
+<div class="screen active" id="s-menu">
+  <div class="menu-title">
+    <span class="ep">Les Aventures de Marcacrin</span>
+    <span class="name">Épisode II</span>
+    <span class="sub">Choisissez votre aventure</span>
+  </div>
+  <div class="mode-cards" id="mode-cards"></div>
+  <div class="menu-extras">
+    <button class="menu-btn" onclick="showEndingsGallery()">🏆 Fins débloquées</button>
+  </div>
+</div>
+
+<!-- SCREEN: ENDINGS GALLERY -->
+<div class="screen" id="s-endings">
+  <div class="gallery-header">
+    <button class="back-btn" onclick="showMenu()">← Menu</button>
+    <h2>Fins Débloquées</h2>
+    <span class="total" id="gallery-total"></span>
+  </div>
+  <div id="gallery-content" style="width:100%;max-width:860px;"></div>
+</div>
+
+<!-- SCREEN: GAME -->
+<div class="screen" id="s-game">
+  <div id="progress-bar">
+    <span id="mode-label">Mode</span>
+    <div class="dot" id="p0"></div><div class="dot" id="p1"></div>
+    <div class="dot" id="p2"></div><div class="dot" id="p3"></div>
+  </div>
+  <button id="menu-toggle" onclick="goToMenu()">☰ Menu</button>
+
+  <!-- Stage -->
+  <div id="stage">
+    <div class="char-slot hidden" id="char-left" style="--glow:var(--brown)">
+      <img id="img-left" src="" alt="">
+      <div class="char-name marcacrin" id="name-left">Marcacrin</div>
+    </div>
+    <div class="char-slot hidden" id="char-right" style="--glow:var(--blue)">
+      <img id="img-right" src="" alt="">
+      <div class="char-name chaos" id="name-right">Chaos</div>
+    </div>
+  </div>
+
+  <!-- Hotspot zones -->
+  <div id="hotspot-zone"></div>
+
+  <!-- Dialog -->
+  <div id="dialog-panel" onclick="advanceDialog()">
+    <div id="speaker-tag" class="narr">✦ Narration</div>
+    <div id="dialog-text"></div>
+    <div id="continue-hint">Cliquer pour continuer ▸</div>
+  </div>
+</div>
+
+<!-- END-DETAIL POPUP (gallery) -->
+<div id="end-detail">
+  <div class="end-detail-box">
+    <div class="big-badge" id="det-badge"></div>
+    <div class="det-label">Fin débloquée</div>
+    <div class="det-title" id="det-title"></div>
+    <div class="det-desc" id="det-desc"></div>
+    <button class="det-close" onclick="closeEndDetail()">Fermer</button>
+  </div>
+</div>
+
+<!-- SCREEN: ESQUIMAUX -->
+<div class="screen" id="s-esquimaux">
+  <button class="esq-back" onclick="goToMenu()">← Menu</button>
+  <div class="esq-title">Mode Esquimaux</div>
+  <div class="esq-subtitle" id="esq-subtitle">Tape sur Marcacrin le plus vite possible en 30 secondes !</div>
+  <div class="esq-hud">
+    <div class="esq-hud-box">
+      <div class="esq-hud-label">Temps</div>
+      <div class="esq-hud-val" id="esq-timer">30</div>
+    </div>
+    <div class="esq-hud-box">
+      <div class="esq-hud-label">Score</div>
+      <div class="esq-hud-val" id="esq-score-val">0</div>
+    </div>
+  </div>
+  <div class="esq-best-line">Meilleur score : <span id="esq-best-val">0</span></div>
+  <div id="esq-char" onclick="esqClick()">
+    <img id="esq-img" src="img/marcacrin.png" alt="Marcacrin">
+  </div>
+  <div id="esq-feedback">+1</div>
+  <div id="esq-waiting">
+    <button class="esq-btn" onclick="esqStart()">▶ Jouer</button>
+  </div>
+  <div id="esq-result">
+    <div id="esq-result-score">0</div>
+    <div id="esq-result-label">tapes en 30 secondes</div>
+    <div id="esq-result-record">🏆 Nouveau record !</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <button class="esq-btn" onclick="esqStart()">↺ Rejouer</button>
+      <button class="esq-btn" style="border-color:var(--border);color:var(--dim);" onclick="goToMenu()">← Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENDING REVEAL (in-game) -->
+<div id="ending-reveal">
+  <div class="rev-box" style="position:relative;">
+    <button class="rev-close" onclick="document.getElementById('ending-reveal').classList.remove('open')" title="Fermer">✕</button>
+    <div class="rev-badge" id="rev-badge"></div>
+    <div class="rev-label">✦ Fin débloquée</div>
+    <div class="rev-title" id="rev-title"></div>
+    <div class="rev-desc" id="rev-desc"></div>
+    <div class="rev-btns">
+      <button class="rev-btn secondary" id="btn-retry" onclick="retryMode()">↺ Rejouer</button>
+      <button class="rev-btn" onclick="goToMenu()">← Menu principal</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CHARACTER CONFIG
+// ══════════════════════════════════════════════════════════════
+const GRICHON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 175"><ellipse cx="50" cy="108" rx="28" ry="36" fill="rgb(210,25,0)"/><line x1="50" y1="74" x2="50" y2="142" stroke="rgb(220,180,0)" stroke-width="2.5" opacity="0.55"/><line x1="50" y1="72" x2="47" y2="96" stroke="rgb(240,200,120)" stroke-width="11"/><ellipse cx="48" cy="58" rx="17" ry="19" fill="rgb(240,200,120)"/><rect x="36" y="53" width="9" height="7" rx="2.5" fill="black" opacity="0.9"/><rect x="49" y="53" width="9" height="7" rx="2.5" fill="black" opacity="0.9"/><line x1="45" y1="57" x2="49" y2="57" stroke="black" stroke-width="1.5"/><path d="M43 68 Q47 73 53 70" stroke="rgb(160,120,60)" stroke-width="1.5" fill="none"/><text x="50" y="115" text-anchor="middle" fill="rgb(220,180,0)" font-size="15" font-weight="900" font-family="Arial">1</text><path d="M24 102 Q15 112 13 123" stroke="rgb(210,25,0)" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="13" cy="132" r="12" fill="white" stroke="black" stroke-width="1.5"/><path d="M7 127 L13 130 L19 127 L19 133 L13 136 L7 133Z" fill="black"/><path d="M76 102 Q86 90 83 78" stroke="rgb(210,25,0)" stroke-width="8" fill="none" stroke-linecap="round"/><line x1="43" y1="142" x2="40" y2="165" stroke="rgb(220,162,58)" stroke-width="5"/><line x1="57" y1="142" x2="60" y2="165" stroke="rgb(220,162,58)" stroke-width="5"/><ellipse cx="38" cy="168" rx="9" ry="4" fill="rgb(220,180,0)" stroke="rgb(160,130,0)" stroke-width="0.5"/><ellipse cx="62" cy="168" rx="9" ry="4" fill="rgb(220,180,0)" stroke="rgb(160,130,0)" stroke-width="0.5"/></svg>`;
+const CHARS = {
+  marcacrin: { name:'Marcacrin', img:'img/marcacrin.png', cls:'marcacrin', glow:'var(--brown)', tag:'🐷' },
+  chaos:     { name:'Chaos',     img:'img/chaos.png',     cls:'chaos',     glow:'var(--blue)',  tag:'✦' },
+  grichon:   { name:'Grichon le Terrible', img:'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(GRICHON_SVG), cls:'grichon', glow:'#ff4400', tag:'⚽' },
+};
+// Image shortcuts
+const M = {
+  def:     'img/marcacrin.png',
+  dort:    'img/marcacrin_dort.png',
+  reveil:  'img/marcacriin_se_reveille.png',
+  affame:  'img/marcacrin_affamé.png',
+  chante:  'img/marcacrin_chante.png',
+  enerve:  'img/marcacrin_enerve.png',
+  fleurs:  'img/marcacrin_fleurs.png',
+  photo:   'img/marcacrin_prend_photo.png',
+  content: 'img/marcacrin_content.png',
+  coree:   'img/marcacrin_coree.png',
+  farceur: 'img/marcacrin_farceur.png',
+  football:'img/marcacrin_football.png',
+  gaming:  'img/marcacrin_gaming_switch.png',
+};
+const C = {
+  def:      'img/chaos.png',
+  content:  'img/chaos_content.png',
+  choque:   'img/chaos_choque.png',
+  nesaitpas:'img/chaos_ne_sait_pas.png',
+  dort:     'img/chaos_dort.png',
+  bagarre:  'img/chaos_bagarre.png',
+  affame:   'img/chaos_affame.png',
+  coree:    'img/chaos_coree.png',
+  enerve:   'img/chaos_enerve.png',
+  gaming:   'img/chaos_gaming_switch.png',
+};
+
+// ══════════════════════════════════════════════════════════════
+//  ENDINGS DATA
+// ══════════════════════════════════════════════════════════════
+const ENDINGS = {
+  // Mode 1 – La Pierre du Rêve Éternel
+  ending_prudent:    { badge:'🛡️', title:'Le Voyageur Prudent',    mode:'pierre',    desc:'La prudence est aussi une forme de courage. Marcacrin et Chaos ont ramené la Pierre sains et saufs. Même si le Gardien est resté mystérieux, parfois mieux vaut ne pas chercher à tout comprendre. Évry peut de nouveau dormir en paix. Ce qui convient parfaitement à Marcacrin.' },
+  ending_courage:    { badge:'✨', title:'Le Cœur Courageux',      mode:'pierre',    desc:'La vraie bravoure, c\'est de faire un pas en avant quand tout tremble. Marcacrin, ce ronfleur bourru qui déteste les aventures, a parlé là où d\'autres auraient fui. Il a découvert qu\'au fond des ombres se cachent des gardiens, pas des monstres. Fin Véritable débloquée !' },
+  ending_sagesse:    { badge:'🌊', title:'La Voie de la Sagesse',  mode:'pierre',    desc:'Certains trésors ne s\'arrachent pas, ils se méritent. La chanson discordante de Marcacrin et l\'enthousiasme de Chaos, mis ensemble, ont convaincu la rivière. Un beau rappel que les différences sont une force.' },
+  ending_intrepide:  { badge:'🌟', title:'L\'Aventurier Intrépide', mode:'pierre',   desc:'Plonger sans réfléchir ? Pas sage. Mais parfois le monde sous-marin réserve des surprises que la prudence n\'aurait jamais permis de voir. Marcacrin a souri sous l\'eau. Il le niera jusqu\'à sa mort.' },
+  ending_sommeil:    { badge:'💤', title:'Le Grand Dormeur',        mode:'pierre',    desc:'Marcacrin s\'est rendormi. Le village a sombré dans des cauchemars... mais franchement assez agréables. Le Vieux Sage a rêvé qu\'il jouait de la harpe. Fin Secrète. Respect pour la cohérence.' },
+  // Mode 2 – Retrouver Marcacrin
+  ending_ruines:       { badge:'🏛️', title:'Les Ruines Oubliées',      mode:'marcacrin', desc:'Marcacrin était dans la chambre souterraine depuis le début, blotti contre une gemme, au frais, parfaitement heureux. Chaos l\'a retrouvé après une longue quête. La récompense ? Un bâillement et un "tu savais pas qu\'il faisait frais ici ?" Beau voyage quand même.' },
+  ending_sommet:       { badge:'🌅', title:'Au Sommet du Monde',        mode:'marcacrin', desc:'Marcacrin observait le coucher de soleil du désert depuis un rocher. Seul, contemplatif, probablement là depuis le début. Chaos l\'a rejoint essoufflé. "Tu aurais pu dire où t\'allais." "Je voulais voir si c\'était plus orange." C\'était plus orange.' },
+  ending_oasis:        { badge:'🌴', title:'L\'Oasis Dorée',             mode:'marcacrin', desc:'L\'esprit du désert a guidé Chaos jusqu\'à une oasis cachée, où Marcacrin dormait sous un palmier comme si c\'était tout à fait normal. Il s\'est réveillé avec un "reste donc". Chaos s\'est assis. L\'eau faisait un bruit doux. Finalement c\'était pas si mal.' },
+  ending_tempete:      { badge:'⛺', title:'Abri dans la Tempête',       mode:'marcacrin', desc:'Marcacrin avait senti la tempête venir et s\'était réfugié dans une grotte en espérant que Chaos prendrait ce chemin. Chaos est arrivé hagard dans la tempête. "T\'aurais pu m\'appeler ?" "J\'avais pas envie de crier dans le vent." Ils ont partagé du poulet chicken street que Marcacrin avait sur lui.' },
+  // Mode 3 – Retrouver Chaos
+  ending_glace:        { badge:'❄️', title:'La Grotte de Glace',         mode:'chaos', desc:'Le hibou blanc avait raison. Au fond de la grotte scintillante, Chaos s\'émerveillait des cristaux de glace en oubliant complètement qu\'il était censé ne pas s\'éloigner. Marcacrin a dit "pas mal". Chaos a décidé que c\'était le plus grand compliment du monde.' },
+  ending_bonhomme:     { badge:'⛄', title:'Le Bonhomme de Neige',        mode:'chaos', desc:'Chaos avait passé deux heures à construire un bonhomme de neige géant dans la clairière. Marcacrin l\'a trouvé, a regardé la construction et dit : "Il te ressemble." Chaos a décidé que c\'était un compliment. Marcacrin n\'a pas confirmé. Ils sont rentrés sous les flocons.' },
+  ending_etoiles:      { badge:'⭐', title:'Au Sommet des Étoiles',       mode:'chaos', desc:'Chaos était au sommet du Mont Givra pour regarder les étoiles briller différemment. Marcacrin a grimpé des heures pour le trouver là. "Tu m\'as fait grimber pour ça ?" "Tu voyais pas qu\'elles brillaient différemment ?" Marcacrin a regardé le ciel. "...Peut-être."' },
+  ending_cascade:      { badge:'💫', title:'La Cascade Gelée',            mode:'chaos', desc:'Chaos glissait sur la cascade gelée en poussant des cris de joie quand Marcacrin est arrivé. "T\'as l\'air ridicule." "Viens glisser !" "Non." Dix minutes plus tard, Marcacrin glissait en émettant un petit son satisfait qu\'il niera avoir fait.' },
+  // Mode 4 – Une Journée en Ville
+  ending_cartel_genie: { badge:'⚽', title:'Le Génie du Terrain',         mode:'ville', desc:'Marcacrin a marqué par accident en regardant ses sabots. Grichon le Terrible, capitaine de Centrale Lyon et invaincu depuis 1984, n\'a pas compris ce qui lui était arrivé. Il a quand même fait sa rolade par dignité. Les 1000 poulets chicken street ont été livrés. Marcacrin en a mangé 1000. Chaos a compté.' },
+  ending_cartel_coeur: { badge:'🏆', title:'La Victoire par le Cœur',     mode:'ville', desc:'Marcacrin regardait un nuage en forme de poulet pendant le match. Grichon a perdu ses moyens. Centrale Lyon a commencé ses roulades de célébration avant de réaliser que c\'est Chaos qui avait marqué. Chaos a marqué en chantant. La stratégie ? Aucune. "On a bien joué." "T\'as rien fait." "Exactement."' },
+  ending_tasty:        { badge:'🍚', title:'La Paix du Tasty Crousty',    mode:'ville', desc:'Riz basmati, poulet grillé, sauce dorée. Marcacrin a mangé avec une lenteur religieuse. Chaos n\'a plus parlé pendant deux heures. Le silence au Tasty Crousty, c\'est le plus grand compliment qui soit.' },
+  ending_chicken:      { badge:'🍗', title:'L\'Éveil au Chicken Street',   mode:'ville', desc:'Chaos a compris ce jour-là pourquoi Marcacrin rêve de Chicken Street. "Bienvenue", a dit Marcacrin avec le plus rare de ses sourires. Deux heures plus tard, ils étaient encore là. En silence. Parfaitement heureux.' },
+  ending_coree:        { badge:'🇰🇷', title:'La Révélation Coréenne',      mode:'ville', desc:'Par un portail oublié du Vieux Sage, ils ont atterri à Séoul. Galbi, tteokbokki, budae jjigae. Chaos s\'est endormi sur la table. "La Corée c\'est pas mal". Le plus grand compliment de Marcacrin pour un pays entier.' },
+  ending_cinema:       { badge:'🎬', title:'L\'Infiltrée',                  mode:'ville', desc:'"L\'Infiltrée" est un chef-d\'œuvre. Marcacrin le savait depuis longtemps. Chaos a découvert. Il y avait une larme sur la joue de Marcacrin pendant le fondu au noir. Il n\'en a jamais parlé. Ils sont restés jusqu\'au dernier générique.' },
+  ending_haiti:        { badge:'🇭🇹', title:'Le Souffle d\'Haïti',           mode:'ville', desc:'Port-au-Prince à l\'aube. Griot croustillant, riz djon djon, akra dorés. Marcacrin a fermé les yeux à la première bouchée et n\'a plus dit grand-chose pendant un bon moment. Chaos dansait le kompa. Une oreille de Marcacrin bougeait imperceptiblement au rythme. Il le niera catégoriquement.' },
+  ending_pokopia:      { badge:'🎮', title:'Pokémon Pokopia',                mode:'ville', desc:'Seize heures de Switch. Marcacrin a choisi Grodou, le pokémon cochon, sans hésiter une seconde. Il a battu le Champion de la Ligue à minuit. Chaos dormait déjà, manette en main, niveau 61. Marcacrin dormait en souriant. Grodou niveau 100.' },
+};
+
+// ══════════════════════════════════════════════════════════════
+//  GAME MODES
+// ══════════════════════════════════════════════════════════════
+const MODES = [
+  {
+    id:'pierre', num:'Mode I', color:'#c9a84c', cr:'201,168,76',
+    title:'La Pierre du Rêve Éternel',
+    sub:'Marcacrin et Chaos affrontent la nuit de Évry',
+    char:'both', startScene:'intro',
+    endings:['ending_prudent','ending_courage','ending_sagesse','ending_intrepide','ending_sommeil'],
+  },
+  {
+    id:'marcacrin', num:'Mode II', color:'#4db8ff', cr:'77,184,255',
+    title:'Retrouver Marcacrin',
+    sub:'Chaos explore le Désert de Soleil à la recherche de son ami',
+    char:'chaos', startScene:'desert_intro',
+    endings:['ending_ruines','ending_sommet','ending_oasis','ending_tempete'],
+  },
+  {
+    id:'chaos', num:'Mode III', color:'#c8895a', cr:'200,137,90',
+    title:'Retrouver Chaos',
+    sub:'Marcacrin trace son chemin sur les pentes glacées du Mont Givra',
+    char:'marcacrin', startScene:'mountain_intro',
+    endings:['ending_glace','ending_bonhomme','ending_etoiles','ending_cascade'],
+  },
+  {
+    id:'ville', num:'Mode IV', color:'#ff4400', cr:'255,68,0',
+    title:'Une Journée en Ville',
+    sub:'Samedi libre à Évry — et c\'est dangereux',
+    char:'both', startScene:'ville_intro',
+    endings:['ending_cartel_genie','ending_cartel_coeur','ending_tasty','ending_chicken','ending_coree','ending_cinema','ending_haiti','ending_pokopia'],
+  },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  SCENE DATA
+// ══════════════════════════════════════════════════════════════
+const SCENES = {
+
+  // ─── MODE 1 : La Pierre du Rêve Éternel ─────────────────
+  intro: {
+    bg:'bg-cave', progress:0,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Dans le village endormi d\'Évry, sous une pleine lune orangée...'},
+      {sp:'narr', text:'Une vieille grotte creusée dans la falaise dorée abrite le plus célèbre des dormeurs.'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'Mmmpfff... encore cinq minutes...'},
+      {sp:'narr', text:'Marcacrin, le magnifique marcassin au groin rose, dort depuis sept heures du matin. Il est maintenant dix-neuf heures.'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'Mmh, dodo...'},
+      {sp:'narr', text:'C\'est alors qu\'un fracas retentit à l\'entrée de la grotte !'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'MARCACRIN ! MARCACRIN ! Réveille-toi !! C\'est une URGENCE absolue !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.reveil, text:'*un œil entrouvert* Chaos... il est quelle heure là... je rêvais de poulet chicken street.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'La Pierre du Rêve Éternel a DISPARU du Temple d\'Évry ! Sans elle, le village va sombrer dans des cauchemars éternels !'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'...Des cauchemars éternels. Formidable. Et ça ne peut pas attendre demain ?'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'NON ! Le Vieux Sage dit qu\'il faut la retrouver avant le lever du soleil, sinon... *frissonne* ...tout le monde dort sans jamais se réveiller.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*long silence* ...Honnêtement ça me semble pas si terrible.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'...Marcacrin.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'OK OK. Je sors de ma grotte. Mais on parle de ça une seule fois.'},
+    ],
+    hotspots:[
+      {label:'Partir avec Chaos explorer la forêt', icon:'🌲', pos:{l:'5%',t:'15%',w:'38%',h:'65%'}, next:'foret'},
+      {label:'Retourner dormir (fin secrète)', icon:'😴', pos:{r:'5%',t:'15%',w:'38%',h:'65%'}, next:'refuse_sleep'},
+    ]
+  },
+
+  refuse_sleep: {
+    bg:'bg-cave', progress:0,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'*se rallonge avec un soupir de satisfaction*'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'Marcacrin... vraiment ? Tu vas laisser tout le village sombrer ??'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'Je dors déjà. Bonne nuit.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'*renifle* Très bien. Je vais y aller seul alors.'},
+      {sp:'narr', text:'Des pas s\'éloignent. Un silence s\'installe. Marcacrin ferme les yeux.'},
+      {sp:'narr', text:'Trente secondes passent.'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'Pfff...'},
+      {sp:'narr', text:'Une minute. Marcacrin imagine Chaos, tout seul dans la forêt sombre, son petit point jaune tremblant dans l\'obscurité.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'...CHAOS ! ATTENDS-MOI ! J\'arrive, espèce d\'idiot !'},
+    ],
+    hotspots:[
+      {label:'Courir rejoindre Chaos !', icon:'💨', pos:{l:'5%',t:'15%',w:'38%',h:'65%'}, next:'foret'},
+      {label:'Vraiment continuer à dormir...', icon:'💤', pos:{r:'5%',t:'15%',w:'38%',h:'65%'}, next:'__end__ending_sommeil'},
+    ]
+  },
+
+  foret: {
+    bg:'bg-forest', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'La forêt d\'Évry la nuit. Un labyrinthe de chênes géants aux racines noueuses.'},
+      {sp:'narr', text:'Des lucioles dansent entre les branches comme des étoiles tombées.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Oh ! Tu vois comme c\'est beau ? Ces petites lumières... j\'adoooore !'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'Ce que je vois surtout, c\'est qu\'il fait noir, que c\'est humide, et que j\'aurais dû rester dans mon lit.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'Le Vieux Sage a dit que la Pierre a été emportée soit vers le Chemin des Ombres, soit vers la Rive Enchantée !'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*renifle l\'air* Je sens quelque chose d\'étrange dans les deux directions. Quelque chose d\'ancien.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Oh ! Ton flair légendaire ! La capacité de Marcacrin à sentir le mystère — c\'est trop fort !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'...Je sentais juste mon poulet chicken street de tout à l\'heure. Mais soit.'},
+    ],
+    hotspots:[
+      {label:'Chemin des Ombres — plus court, plus dangereux', icon:'🌑', pos:{l:'5%',t:'10%',w:'40%',h:'70%'}, next:'chemin_ombres'},
+      {label:'Rive Enchantée — plus long, plus sûr', icon:'✨', pos:{r:'5%',t:'10%',w:'40%',h:'70%'}, next:'rive_enchantee'},
+    ]
+  },
+
+  chemin_ombres: {
+    bg:'bg-shadow', progress:2,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Le Chemin des Ombres. Même les arbres semblent retenir leur souffle ici.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'*chuchote* C\'est... calme. Trop calme.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*chuchote* Arrête de chuchoter. Tu me stresses.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'*encore plus bas* Désolé. *chuchote* Regarde là-bas...'},
+      {sp:'narr', text:'À l\'orée d\'une clairière obscure, une silhouette immense se déplace entre les troncs.'},
+      {sp:'narr', text:'Des yeux dorés s\'ouvrent dans le noir. Un grondement sourd fait trembler le sol.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'C\'est le Gardien des Ombres ! Le Vieux Sage nous avait prévenus... *tremble* Il protège quelque chose.'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*jette un coup d\'œil* ...Il a l\'air grognon. Je comprends ça.'},
+    ],
+    hotspots:[
+      {label:'Fuir ! Se cacher dans les fourrés !', icon:'🏃', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'fuite'},
+      {label:'S\'approcher et lui parler', icon:'💬', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'dialogue_gardien'},
+    ]
+  },
+
+  fuite: {
+    bg:'bg-shadow', progress:3,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Ils plongent dans les fourrés ! Des branches griffent, des feuilles tourbillonnent.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'AAAAAH — *bruit de brindilles* — MARCACRIN !! IL NOUS SUIT !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'Cours ! Cours ! Et arrête de crier !!'},
+      {sp:'narr', text:'Ils courent, courent... jusqu\'à déboucher au sommet d\'une colline rocheuse.'},
+      {sp:'narr', text:'En bas : un autel de pierre. Et posée au centre, scintillant d\'une lumière douce...'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'...La Pierre du Rêve Éternel ! Elle était DEHORS tout ce temps !'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*haletant* ...Le Gardien. Il... il la protégeait ? Il ne l\'avait pas volée ?'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'*regarde en arrière* Il s\'est arrêté à la lisière... Il nous laisse la prendre.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'Hm. *grogne doucement* On a peut-être eu tort de fuir.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'La prochaine fois... on essaiera de parler d\'abord, tu crois ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'...Peut-être. Mais là on rentre. J\'ai un poulet chicken street qui m\'attend.'},
+      {sp:'narr', text:'La Pierre récupérée, ils rentrent à Évry. La mission est accomplie... à leur façon.'},
+    ],
+    ending:'ending_prudent'
+  },
+
+  dialogue_gardien: {
+    bg:'bg-shadow', progress:3,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'G-Marcacrin... tu es sûr de toi ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'Non. Mais quelqu\'un a dit qu\'on devrait parler d\'abord.'},
+      {sp:'narr', text:'Marcacrin fait un pas en avant. Puis un autre. La silhouette immense tourne ses yeux dorés vers lui.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*voix ferme* Hé. On est pas là pour te causer des ennuis. On cherche juste la Pierre du Rêve.'},
+      {sp:'narr', text:'Un long silence. Puis... la créature s\'abaisse lentement sur ses pattes avant.'},
+      {sp:'narr', text:'Elle ouvre une patte immense. Dedans, la Pierre du Rêve Éternel brille d\'une lumière chaude.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'*souffle coupé* Elle... elle l\'avait pour la protéger. Elle la gardait pour nous ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'*pose une main sur le museau de la créature* Merci.'},
+      {sp:'narr', text:'La créature émet un son doux, presque un ronronnement. Puis s\'estompe dans la nuit.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Marcacrin... *yeux brillants* ...Tu as été INCROYABLE ! Courageux ! Magnifique !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'J\'ai juste... parlé.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Parfois c\'est tout ce qu\'il faut. ✨'},
+      {sp:'narr', text:'Sous la lune orangée, ils rentrent. Et pour une fois, même Marcacrin sourit.'},
+    ],
+    ending:'ending_courage'
+  },
+
+  rive_enchantee: {
+    bg:'bg-river', progress:2,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'La Rive Enchantée. Une rivière aux reflets d\'argent traverse la forêt en chantant.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Ohhh ! L\'eau brille violette ! C\'est de la magie pure !'},
+      {sp:'marcacrin', ac:'left', imgL:M.photo, text:'*renifle* Je sens quelque chose sous l\'eau. Quelque chose d\'ancien.'},
+      {sp:'narr', text:'Sur un rocher mouillé, une vieille tortue ouvre lentement un œil. Elle porte sur sa carapace des runes lumineuses.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Un Sage-Tortue ! Il connaît sûrement l\'emplacement de la Pierre !'},
+      {sp:'narr', text:'La tortue parle d\'une voix lente comme des pierres qui roulent : "La Pierre est au cœur de la rivière. Il faut la mériter."'},
+    ],
+    hotspots:[
+      {label:'Écouter le Sage — il a un conseil précieux', icon:'🐢', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'ecouter_sage'},
+      {label:'Plonger directement — on n\'a pas le temps !', icon:'🌊', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'plonger'},
+    ]
+  },
+
+  ecouter_sage: {
+    bg:'bg-river', progress:3,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'Bien. On écoute.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Oui oui oui ! On est tout ouïe !'},
+      {sp:'narr', text:'"La Pierre reconnaît ceux dont les cœurs sont accordés. Chantez ensemble — et la rivière s\'ouvrira."'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'CHANTER ! Oh j\'adore chanter ! *commence à fredonner* ♪ La la laaa ♪'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'...Tu veux que je chante.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'S\'il te plaît Marcacrin. Pour le village. Pour tous ceux qui dorment.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'...*long soupir*...'},
+      {sp:'narr', imgL:M.chante, text:'Marcacrin émet un son grave, bourru, presque juste. Chaos l\'accompagne en harmonie.'},
+      {sp:'narr', text:'La rivière tremble. Se soulève. Et dans un geyser de lumière violette...'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'...La Pierre !! Elle monte toute seule !! *saute partout*'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*attrape la Pierre calmement* Voilà. On arrête de chanter maintenant.'},
+      {sp:'narr', text:'La tortue Sage sourit légèrement. "Deux cœurs différents. Une seule chanson. C\'est ainsi que le monde tient."'},
+    ],
+    ending:'ending_sagesse'
+  },
+
+  plonger: {
+    bg:'bg-river', progress:3,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'chaos', ac:'right', imgR:C.content, text:'ALLONS-Y ! *saute dans la rivière* PLOUF !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'CHAOS— *pousse un soupir, plonge à son tour* ...Ouargh, c\'est froid !!'},
+      {sp:'narr', text:'Sous l\'eau, un monde impossible. Des coraux de lumière, des poissons faits de rêves cristallisés...'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'(sous l\'eau) *bulle bulle* Oh... c\'est magique...'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'(sous l\'eau) *bulle bulle* Je vois la Pierre ! Dans une grotte cristalline !'},
+      {sp:'narr', text:'Des Gardiens de l\'Eau minuscules semblent contents de les voir. L\'un d\'eux tend la Pierre à Marcacrin.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*émerge de l\'eau* WAOUH !! Tu t\'es amusé, hein ?! HEIN ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'*s\'ébroue comme un chien* ...Peut-être. Un tout petit peu. Ne le dis à personne.'},
+    ],
+    ending:'ending_intrepide'
+  },
+
+  // ─── MODE 2 : Retrouver Marcacrin (désert) ──────────────
+  desert_intro: {
+    bg:'bg-desert', progress:0,
+    left:{char:'chaos'}, right:null,
+    dialog:[
+      {sp:'narr', text:'Le Désert de Soleil. Un océan de sable doré qui s\'étend jusqu\'à l\'horizon sous un soleil de plomb.'},
+      {sp:'narr', text:'Marcacrin a disparu depuis ce matin. Chaos, petit point bleu au milieu du néant brûlant, cherche.'},
+      {sp:'chaos', ac:'left', imgL:C.choque, text:'Marcacriiiiin ! Où es-tuuuu ??! *regarde dans tous les sens* C\'est GRAND ici !!'},
+      {sp:'narr', text:'À l\'ouest, les silhouettes des Ruines de Kaldar découpent l\'horizon. À l\'est, les Grandes Dunes montent vers le ciel.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'Il faut choisir... *essuie la sueur* Et vite. Ce soleil est impitoyable.'},
+    ],
+    hotspots:[
+      {label:'Les Ruines de Kaldar — à l\'ouest', icon:'🏛️', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'ruins_path'},
+      {label:'Les Grandes Dunes — à l\'est', icon:'🏜️', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'dunes_path'},
+    ]
+  },
+
+  ruins_path: {
+    bg:'bg-ruins', progress:1,
+    left:{char:'chaos'}, right:null,
+    dialog:[
+      {sp:'narr', text:'Les Ruines de Kaldar. Des colonnes brisées et des murs de pierre dorée tapissés de sable.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'Wow... c\'est trop beau ! Marcacrin doit ADORER les vieilles pierres !'},
+      {sp:'narr', text:'Au centre des ruines, une immense porte de pierre. Elle est entrouverte.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'Hmmm... *renifle* Je sens quelque chose là-dedans. Une odeur de... poulet chicken street ?'},
+      {sp:'narr', text:'À côté de la porte, des empreintes de petites pattes s\'éloignent vers un rocher élevé.'},
+    ],
+    hotspots:[
+      {label:'Pousser la porte et entrer', icon:'🚪', pos:{l:'20%',t:'10%',w:'35%',h:'70%'}, next:'ruins_open'},
+      {label:'Suivre les empreintes vers le rocher', icon:'👣', pos:{r:'5%',t:'15%',w:'35%',h:'60%'}, next:'ruins_footprints'},
+    ]
+  },
+
+  ruins_open: {
+    bg:'bg-ruins', progress:2,
+    left:{char:'chaos'}, right:{char:'marcacrin'},
+    dialog:[
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*pousse la porte* Marcacrin ! MARCACRIN !'},
+      {sp:'narr', text:'La porte s\'ouvre dans un grondement sourd. L\'air frais du souterrain envahit les narines.'},
+      {sp:'narr', text:'Et là, dans la lueur orangée d\'une gemme lumineuse...'},
+      {sp:'marcacrin', ac:'right', imgR:M.reveil, text:'*lève la tête* ...Chaos ? C\'est toi ? *bâille* Je faisais une sieste au frais.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'*yeux brillants* T\'ES LÀ ! Je t\'ai cherché pendant des HEURES !'},
+      {sp:'marcacrin', ac:'right', imgR:M.def, text:'Mm. C\'est frais dans les ruines. Tu savais pas ça ?'},
+      {sp:'chaos', ac:'left', imgL:C.bagarre, text:'*exaspéré et soulagé à la fois* ...Je t\'aime mais tu me rends fou.'},
+      {sp:'narr', text:'Retrouvé dans une chambre secrète, blotti contre une gemme, ronronnant doucement. C\'est du Marcacrin tout craché.'},
+    ],
+    ending:'ending_ruines'
+  },
+
+  ruins_footprints: {
+    bg:'bg-desert', progress:2,
+    left:{char:'chaos'}, right:{char:'marcacrin'},
+    dialog:[
+      {sp:'narr', text:'Les empreintes contournent les ruines... et montent sur un rocher plat en hauteur.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*essoufflé* C\'est haut... *grimpe* Marcacrin ??'},
+      {sp:'narr', text:'Sur le rocher, Marcacrin est assis, fixant l\'horizon d\'un air contemplatif.'},
+      {sp:'marcacrin', ac:'right', imgR:M.photo, text:'...Tu as mis le temps.'},
+      {sp:'chaos', ac:'left', imgL:C.bagarre, text:'JE T\'CHERCHAIS !! Tu pouvais pas dire où t\'allais !!'},
+      {sp:'marcacrin', ac:'right', imgR:M.photo, text:'Je voulais voir si le soleil se couche différemment dans le désert.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*soupir* ...Et alors ?'},
+      {sp:'marcacrin', ac:'right', imgR:M.def, text:'Oui. C\'est plus orange.'},
+      {sp:'narr', text:'Le soleil descend doucement. Ils regardent ensemble l\'horizon brûlant. Et finalement, c\'est pas si mal.'},
+    ],
+    ending:'ending_sommet'
+  },
+
+  dunes_path: {
+    bg:'bg-desert', progress:1,
+    left:{char:'chaos'}, right:null,
+    dialog:[
+      {sp:'narr', text:'Les Grandes Dunes. Des vagues de sable qui montent jusqu\'au ciel.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*s\'enfonce dans le sable à chaque pas* MMMMmmh c\'est du sableeee partout !!'},
+      {sp:'narr', text:'Soudain, un tourbillon de sable se forme — et une forme translucide, lumineuse, apparaît.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'...C\'est... un esprit du désert ? *se gratte la tête* Il me fait signe... je crois.'},
+    ],
+    hotspots:[
+      {label:'Suivre l\'esprit du désert', icon:'🌀', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'dunes_follow'},
+      {label:'Ignorer et continuer seul', icon:'🚶', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'dunes_avoid'},
+    ]
+  },
+
+  dunes_follow: {
+    bg:'bg-oasis', progress:2,
+    left:{char:'chaos'}, right:{char:'marcacrin'},
+    dialog:[
+      {sp:'narr', text:'Chaos suit l\'esprit à travers les dunes. Elles se succèdent, interminables sous le soleil déclinant...'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*tout essoufflé* Attends... attends-moi !! *trébuche*'},
+      {sp:'narr', text:'Et soudain, derrière une dernière dune... une oasis. Vert éclatant. Palmiers. Eau bleue.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'OOH !!'},
+      {sp:'narr', text:'Sous un palmier, ronflant comme un bienheureux...'},
+      {sp:'marcacrin', ac:'right', imgR:M.dort, text:'ZZZzzzz...'},
+      {sp:'chaos', ac:'left', imgL:C.choque, text:'*murmure* Il... il dort. *soupir* Bien sûr qu\'il dort.'},
+      {sp:'narr', text:'L\'esprit du désert disparaît en spirale dorée.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'*s\'assied à côté de Marcacrin* T\'as failli me tuer d\'inquiétude, tu sais.'},
+      {sp:'marcacrin', ac:'right', imgR:M.reveil, text:'*un œil mi-clos* ...L\'oasis est confortable. Reste donc.'},
+      {sp:'chaos', ac:'left', imgL:C.dort, text:'*ferme les yeux, un sourire aux lèvres* ZZzz...'},
+      {sp:'narr', text:'Chaos ferme les yeux. L\'eau fait un bruit doux. Les palmiers font de l\'ombre. Finalement...'},
+    ],
+    ending:'ending_oasis'
+  },
+
+  dunes_avoid: {
+    bg:'bg-desert', progress:2,
+    left:{char:'chaos'}, right:{char:'marcacrin'},
+    dialog:[
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*préfère contourner l\'esprit* Voilà. Je gère tout seul.'},
+      {sp:'narr', text:'Un grondement sourd. Le ciel change de couleur. Une tempête de sable se lève !'},
+      {sp:'chaos', ac:'left', imgL:C.choque, text:'Oh NON NON NON !'},
+      {sp:'narr', text:'Le vent hurle. Le sable aveugle. Chaos court au hasard et trouve par chance une petite grotte rocheuse.'},
+      {sp:'chaos', ac:'left', imgL:C.choque, text:'*entre en soufflant* OUF. *blink* ...MARCACRIN ?!'},
+      {sp:'marcacrin', ac:'right', imgR:M.def, text:'*assis calmement au fond* Ah. T\'es arrivé.'},
+      {sp:'chaos', ac:'left', imgL:C.bagarre, text:'TU SAVAIS QUE J\'ALLAIS VENIR ?!'},
+      {sp:'marcacrin', ac:'right', imgR:M.def, text:'J\'avais senti la tempête. Je pensais que tu prendrais ce chemin.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'*entre ahuri et attendri* ...T\'aurais pu m\'APPELER ?'},
+      {sp:'marcacrin', ac:'right', imgR:M.def, text:'Mmm. J\'avais pas envie de crier dans le vent.'},
+      {sp:'narr', text:'La tempête rage dehors. Dedans, ils partagent un reste de poulet chicken street que Marcacrin avait dans sa poche. Bien sûr.'},
+    ],
+    ending:'ending_tempete'
+  },
+
+  // ─── MODE 3 : Retrouver Chaos (montagne) ────────────────
+  mountain_intro: {
+    bg:'bg-mountain', progress:0,
+    left:{char:'marcacrin'}, right:null,
+    dialog:[
+      {sp:'narr', text:'Le Mont Givra. Un monde de silence cristallin, où chaque souffle fait de la buée.'},
+      {sp:'narr', text:'Chaos a disparu ce matin, quelque part sur ces pentes glacées. Marcacrin suit la piste.'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*sniff sniff sniff* ...Je le sens. Quelque chose de bleu et de surexcité. C\'est lui.'},
+      {sp:'narr', text:'Deux chemins s\'ouvrent devant Marcacrin. La Forêt des Pins Givrés à gauche. Les Falaises Rocheuses à droite.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*regarde les deux* ...Les deux semblent pénibles.'},
+    ],
+    hotspots:[
+      {label:'Forêt des Pins Givrés', icon:'🌲', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'forest_path'},
+      {label:'Falaises Rocheuses', icon:'🏔️', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'cliff_path'},
+    ]
+  },
+
+  forest_path: {
+    bg:'bg-forest', progress:1,
+    left:{char:'marcacrin'}, right:null,
+    dialog:[
+      {sp:'narr', text:'La forêt est silencieuse. La neige amortit chaque bruit. Les sapins portent des couronnes blanches.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*souffle sa buée* Pfff. Froid.'},
+      {sp:'narr', text:'Un grand hibou blanc se pose sur une branche basse. Il tourne la tête vers Marcacrin.'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*soutient son regard* ...T\'as quelque chose à dire ?'},
+      {sp:'narr', text:'Le hibou bat des ailes et s\'envole vers l\'est. Puis se retourne. Comme pour guider.'},
+    ],
+    hotspots:[
+      {label:'Suivre le hibou blanc', icon:'🦉', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'forest_owl'},
+      {label:'Ignorer et continuer tout droit', icon:'➡️', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'forest_straight'},
+    ]
+  },
+
+  forest_owl: {
+    bg:'bg-icecave', progress:2,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Marcacrin suit le hibou en silence. Ça monte. C\'est glissant. C\'est froid.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'Mmmpfff.'},
+      {sp:'narr', text:'Le hibou s\'arrête devant l\'entrée d\'une grotte de glace. Bleue, scintillante. De l\'intérieur vient une lumière.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*de l\'intérieur* Oh waaaaah... c\'est trop beau ! Les cristaux de glace ! LES CRISTAAAUX !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*entre* ...Tu es venu ici exprès ?'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'MARCACRIN !! *sautille* Regarde ! REGARDE ! C\'est magique non ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*regarde autour de lui* ...Ouais. Pas mal.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'Pas mal ??! C\'est EXTRAORDINAIRE !!'},
+      {sp:'narr', text:'Le hibou blanc se pose à l\'entrée. Marcacrin pense qu\'il avait raison de lui faire confiance. Mais il ne le dira pas à voix haute.'},
+    ],
+    ending:'ending_glace'
+  },
+
+  forest_straight: {
+    bg:'bg-forest', progress:2,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Marcacrin continue droit. La forêt s\'épaissit, puis débouche sur une clairière ouverte.'},
+      {sp:'narr', text:'Au centre... une structure imposante de neige. Deux mètres de haut. Des bras de branches.'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'...Un bonhomme de neige.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*apparaît derrière* MARCACRIN ! T\'as vu ?! J\'ai mis DEUX HEURES !'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*examine la construction* ...La tête est trop grande.'},
+      {sp:'chaos', ac:'right', imgR:C.bagarre, text:'C\'est VOULU ! C\'est son charme ! Tu peux pas voir le génie ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*silence* ...Il te ressemble.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'...C\'EST UN COMPLIMENT ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'Mmm.'},
+      {sp:'narr', text:'Chaos décide que c\'est un compliment. Marcacrin ne confirmera pas. Ils rentrent ensemble sous les flocons.'},
+    ],
+    ending:'ending_bonhomme'
+  },
+
+  cliff_path: {
+    bg:'bg-cliff', progress:1,
+    left:{char:'marcacrin'}, right:null,
+    dialog:[
+      {sp:'narr', text:'Les Falaises Rocheuses. La vue est époustouflante — et le vent glacial.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*plisse les yeux contre le vent* ...Où t\'es, l\'idiot bleu.'},
+      {sp:'narr', text:'Dans la neige, des empreintes de petits pieds jaunes. Fraîches.'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*les renifle* Lui.'},
+      {sp:'narr', text:'Les empreintes bifurquent. Elles montent vers le sommet... ou partent le long de la paroi vers une cascade.'},
+    ],
+    hotspots:[
+      {label:'Monter vers le sommet', icon:'⬆️', pos:{l:'25%',t:'5%',w:'50%',h:'40%'}, next:'cliff_up'},
+      {label:'Longer la paroi vers la cascade', icon:'💧', pos:{l:'5%',t:'48%',w:'40%',h:'40%'}, next:'cliff_side'},
+    ]
+  },
+
+  cliff_up: {
+    bg:'bg-cliff', progress:2,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Marcacrin grimpe. Ses griffes s\'accrochent à la roche gelée. C\'est long. C\'est dur.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*à mi-voix* J\'aurais dû rester dans ma grotte.'},
+      {sp:'narr', text:'Le sommet. Un plateau de roche et de neige. Et là, silhouette bleue sur fond d\'étoiles...'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*debout sur le bord du vide, regardant le ciel* ...Les étoiles sont tellement plus proches ici.'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*halète* Tu... tu m\'as fait grimper... pour regarder des étoiles ?'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*se retourne avec le plus grand des sourires* Tu voyais pas qu\'elles brillaient différemment ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.photo, text:'*regarde le ciel malgré lui* ...'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'...Mmm. Peut-être.'},
+      {sp:'narr', text:'Le vent s\'est calmé. Les étoiles, ici, au sommet du Mont Givra — elles brillent vraiment différemment. Marcacrin ne le répétera à personne.'},
+    ],
+    ending:'ending_etoiles'
+  },
+
+  cliff_side: {
+    bg:'bg-cliff', progress:2,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Le long de la falaise. Le chemin est étroit mais la vue est vertigineuse.'},
+      {sp:'narr', text:'Marcacrin entend quelque chose. Un rire haut perché, cristallin.'},
+      {sp:'narr', text:'Une cascade gelée. Et devant, Chaos glisse sur la glace en poussant des cris de joie.'},
+      {sp:'chaos', ac:'right', imgR:C.bagarre, text:'WHEEEEE— *glisse* WHEEEEE— *glisse encore* TROP BIEN !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'*s\'arrête et regarde* ...T\'as l\'air ridicule.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*s\'arrête net* MARCACRIN ! Viens glisser !'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'Non.'},
+      {sp:'chaos', ac:'right', imgR:C.bagarre, text:'*tend les mains* ALLEZ !'},
+      {sp:'marcacrin', ac:'left', imgL:M.enerve, text:'......Non.'},
+      {sp:'narr', imgL:M.fleurs, text:'Dix minutes plus tard, Marcacrin glisse sur la cascade gelée en émettant un petit son satisfait qu\'il niera avoir fait.'},
+    ],
+    ending:'ending_cascade'
+  },
+
+  // ─── MODE 4 : Une Journée en Ville ──────────────────────
+  ville_intro: {
+    bg:'bg-village', progress:0,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Samedi matin. Évry sommeille encore. Pas d\'urgence. Pas de Pierre à retrouver. Juste... une journée.'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'*bâille à s\'en décrocher la mâchoire* ...C\'est un signe de l\'univers pour rester au lit.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'OU... c\'est l\'occasion d\'une vraie aventure ! Il y a le Cartel — une compétition de foot avec une récompense LÉGENDAIRE !'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'...Une récompense de quel type.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'1000 poulets chicken street pour l\'équipe gagnante !'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'*oreilles qui se dressent* Je t\'écoute.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'On peut aussi aller manger ! Tasty Crousty ? Chicken Street ? Ou... *yeux brillants* ...aller en Corée du Sud étudier les mukbangs ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'Il y a aussi l\'Infiltrée au cinéma. C\'est un classique.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'TU CONNAIS L\'INFILTRÉE ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'J\'ai des centres d\'intérêt, Chaos.'},
+      {sp:'chaos', ac:'right', imgR:C.gaming, text:'Ah ! Et le Vieux Sage a laissé sa Switch traîner ! On pourrait jouer à Pokémon Pokopia !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.gaming, text:'*regarde la Switch* ...Hmm. Et Haïti dans tout ça.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Son portail Haïti est encore ouvert je crois !'},
+    ],
+    hotspots:[
+      {label:'Le Cartel — compétition de foot', icon:'⚽', pos:{l:'3%',t:'4%',w:'29%',h:'28%'}, next:'cartel_intro'},
+      {label:'Tasty Crousty — riz et poulet', icon:'🍚', pos:{l:'35%',t:'4%',w:'29%',h:'28%'}, next:'tasty_scene'},
+      {label:'Chicken Street', icon:'🍗', pos:{r:'3%',t:'4%',w:'29%',h:'28%'}, next:'chicken_scene'},
+      {label:'Corée du Sud — mukbangs', icon:'🇰🇷', pos:{l:'18%',t:'36%',w:'29%',h:'28%'}, next:'coree_scene'},
+      {label:'Cinéma — L\'Infiltrée', icon:'🎬', pos:{r:'18%',t:'36%',w:'29%',h:'28%'}, next:'cinema_scene'},
+      {label:'Haïti — griot et kompa', icon:'🇭🇹', pos:{l:'18%',t:'68%',w:'29%',h:'28%'}, next:'haiti_scene'},
+      {label:'Pokémon Pokopia — Switch', icon:'🎮', pos:{r:'18%',t:'68%',w:'29%',h:'28%'}, next:'pokemon_scene'},
+    ]
+  },
+
+  cartel_intro: {
+    bg:'bg-pitch', progress:1,
+    left:{char:'marcacrin'}, right:{char:'grichon'},
+    dialog:[
+      {sp:'narr', text:'Le Cartel. Un stade improvisé à la sortie d\'Évry. Gradins bondés, drapeaux qui claquent, ambiance électrique.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'OUAH ! C\'est ÉNORME ! Regarde les drapeaux ! L\'atmosphère !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'*renifle l\'air* Je sens les hot-dogs. Et la testostérone.'},
+      {sp:'narr', text:'En face : Centrale Lyon. Une équipe légendaire dont chaque but est fêté par des roulades en chaîne. L\'adversaire le plus redouté du Cartel.'},
+      {sp:'narr', text:'Le sol tremble. La foule se tait d\'un coup. Une ombre immense s\'avance sur le terrain.'},
+      {sp:'narr', text:'GRICHON LE TERRIBLE. Autruche de deux mètres. Maillot rouge n°1. Lunettes noires dorées. Balle sous le bras. Capitaine de Centrale Lyon.'},
+      {sp:'grichon', ac:'right', text:'*ricane lentement* Encore des nouveaux. Vous êtes mignons. Vous avez l\'air... délicieux à écraser.'},
+      {sp:'chaos', ac:'left', imgL:C.choque, text:'Il est IMMENSE !! Marcacrin... t\'as vu la taille ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'*le regarde sans broncher* Il est surtout bruyant.'},
+      {sp:'grichon', ac:'right', text:'*se penche vers Marcacrin* Centrale Lyon est invaincu depuis 1984. Pas un seul but encaissé. Et quand on marque... *effectue une rolade parfaite* ...on fête comme ça.'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'*observe la rolade* ...Tu t\'es entraîné combien de temps ?'},
+      {sp:'grichon', ac:'right', text:'*silence choqué* ...Toute ma vie. POURQUOI ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'Pour rien. *renifle* Tu sens le hot-dog aussi.'},
+    ],
+    hotspots:[
+      {label:'Le provoquer directement', icon:'💥', pos:{r:'5%',t:'10%',w:'38%',h:'70%'}, next:'cartel_directe'},
+      {label:'Jouer à votre façon, cool', icon:'😴', pos:{l:'5%',t:'10%',w:'38%',h:'70%'}, next:'cartel_relax'},
+    ]
+  },
+
+  cartel_directe: {
+    bg:'bg-pitch', progress:2,
+    left:{char:'marcacrin'}, right:{char:'grichon'},
+    dialog:[
+      {sp:'chaos', ac:'left', imgL:C.bagarre, text:'ON VOUS DÉFIE GRICHON ! On va gagner ces poulets !!'},
+      {sp:'grichon', ac:'right', text:'*rit aux éclats* HA ! HA ! HA ! J\'adore l\'audace des condamnés ! Le match commence !'},
+      {sp:'narr', text:'Grichon est partout. Il court, il défend, il attaque, il vocifère. Centrale Lyon joue en bloc, en machine. Ils sont terriblement forts.'},
+      {sp:'chaos', ac:'left', imgL:C.bagarre, text:'MARCACRIN — LE BALLON — MAINTENANT !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'*reçoit le ballon, regarde le but distraitement* ...'},
+      {sp:'grichon', ac:'right', text:'*fonce* Tu crois vraiment que tu peux— *trébuche sur sa propre botte*'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'*frappe le ballon d\'un geste vague en regardant ailleurs*'},
+      {sp:'narr', text:'Le ballon roule lentement, lentement... et entre dans le filet. UN BUT.'},
+      {sp:'chaos', ac:'left', imgL:C.content, text:'OOOH !! IL A MARQUÉ !! MARCACRIN A MARQUÉ !!!! *saute dans tous les sens*'},
+      {sp:'grichon', ac:'right', text:'QUOI — COMMENT — C\'était quoi ce geste— c\'était QUOI—'},
+      {sp:'narr', text:'Un silence absolu. Puis Grichon, par pur réflexe d\'entraînement, entame une rolade... avant de réaliser qu\'il a encaissé.'},
+      {sp:'grichon', ac:'right', text:'*en plein milieu d\'une rolade* ...Attendez. On a perdu. *termine quand même la rolade par dignité*'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'*regarde ses sabots* ...Je visais le hot-dog là-bas. Mais c\'est pas mal.'},
+    ],
+    ending:'ending_cartel_genie'
+  },
+
+  cartel_relax: {
+    bg:'bg-pitch', progress:2,
+    left:{char:'marcacrin'}, right:{char:'grichon'},
+    dialog:[
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'On fait ça simplement. Chaos tu cours, moi je gère.'},
+      {sp:'chaos', ac:'left', imgL:C.nesaitpas, text:'...C\'est ça votre stratégie ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'Ouais.'},
+      {sp:'narr', text:'Le match démarre. Centrale Lyon s\'attendait à de la peur, à de la compétition. Ce qu\'ils trouvent...'},
+      {sp:'narr', text:'...c\'est Marcacrin qui regarde tranquillement le ciel pendant le jeu.'},
+      {sp:'grichon', ac:'right', text:'HÉ ! Bouge ! C\'est un MATCH DE FOOT ici !'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'Je sais.'},
+      {sp:'grichon', ac:'right', text:'ALORS POURQUOI TU REGARDES LES NUAGES ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.football, text:'...Il y a un nuage en forme de poulet. C\'est rare.'},
+      {sp:'narr', text:'Grichon perd complètement ses moyens. Et pendant cette seconde de distraction...'},
+      {sp:'chaos', ac:'left', imgL:C.bagarre, text:'*déborde par la droite en chantant* ♪ GOOOAL !! AVEC L\'AMOUR !! ♪'},
+      {sp:'narr', text:'Réflexe de Centrale Lyon : l\'équipe entière se lance dans ses roulades de célébration... avant de réaliser que c\'est l\'équipe adverse qui a marqué.'},
+      {sp:'grichon', ac:'right', text:'*en plein milieu d\'une rolade* ...Attendez.'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'*hochement de tête* Bien joué, Chaos.'},
+      {sp:'narr', text:'Ils repartent avec les 1000 poulets. Marcacrin mange dans la navette retour. C\'est une belle journée.'},
+    ],
+    ending:'ending_cartel_coeur'
+  },
+
+  tasty_scene: {
+    bg:'bg-village', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Le Tasty Crousty. Coin d\'Évry. Chaises plastique jaune. Comptoir formica. Odeur de riz chaud et de sauce dorée.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'Ça sent TROP BON !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'*renifle profondément et ferme les yeux* ...Riz basmati. Poulet grillé croustillant. Sauce à l\'échalote.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'T\'as une tête de quelqu\'un qui va pleurer.'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'C\'est l\'émotion.'},
+      {sp:'narr', text:'Les assiettes arrivent. Monumentales. Dorées. Fumantes.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*une bouchée* ...OH. OH NON. C\'EST TROP BON !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'*mange avec une lenteur quasi religieuse* ...Mmm.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'Tu manges exprès lentement pour faire durer ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'Ça mérite d\'être savouré.'},
+      {sp:'narr', text:'Le repas se termine dans un silence complet. Même Chaos ne parle plus. C\'est le plus grand compliment.'},
+    ],
+    ending:'ending_tasty'
+  },
+
+  chicken_scene: {
+    bg:'bg-village', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Chicken Street. Une ruelle pavée, parfumée de friture sacrée. Marcacrin entre et s\'arrête net.'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'*tremble légèrement* ...Je suis chez moi.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'Tu trembles ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'C\'est l\'émotion, Chaos.'},
+      {sp:'narr', text:'Marcacrin commande avec la précision d\'un expert. Cuisse. Frite croustillante. Sauce piment doux.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'*reçoit son assiette* ...Alors ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'*un sourire fugace, rarissime* ...C\'est bon.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*goûte* WOAH. Je comprends. Je comprends TOUT maintenant.'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'Bienvenue.'},
+      {sp:'narr', text:'Deux heures plus tard, ils sont encore là. En silence. Parfaitement heureux. Aucune pierre à trouver. Juste du poulet.'},
+    ],
+    ending:'ending_chicken'
+  },
+
+  coree_scene: {
+    bg:'bg-dark', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Séoul. Par un portail que le Vieux Sage avait oublié de fermer. Un marché de nuit infini, lumineux, bouillonnant.'},
+      {sp:'chaos', ac:'right', imgR:C.coree, text:'*tourne sur lui-même* TOUT LIT ICI ! Les enseignes ! Les vapeurs ! L\'odeur !! C\'est MAGIQUE !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.coree, text:'*fixe un écran géant où quelqu\'un mange en live devant des milliers de gens* ...C\'est quoi ça.'},
+      {sp:'chaos', ac:'right', imgR:C.coree, text:'Un MUKBANG ! Les gens mangent en direct et des millions de personnes regardent !'},
+      {sp:'marcacrin', ac:'left', imgL:M.coree, text:'...Personne ne participe depuis chez soi ?'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'Toi ça t\'intéresserait de manger devant des millions de gens ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.coree, text:'*regarde les grillades en face* Non. Mais ça m\'intéresse de goûter ça.'},
+      {sp:'narr', text:'Deux heures de galbi, tteokbokki et soupe budae jjigae plus tard...'},
+      {sp:'chaos', ac:'right', imgR:C.dort, text:'*yeux mi-clos* Je... vais... plus jamais... manger autant...'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'La Corée, c\'est pas mal.'},
+      {sp:'narr', text:'Le Vieux Sage trouvera ses notes sur le portail le lendemain. Marcacrin et Chaos n\'en ont jamais parlé.'},
+    ],
+    ending:'ending_coree'
+  },
+
+  cinema_scene: {
+    bg:'bg-shadow', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Le Cinéma Rex d\'Évry. Rideau rouge, fauteuils velours bordeaux, odeur de popcorn légèrement brûlé.'},
+      {sp:'chaos', ac:'right', imgR:C.nesaitpas, text:'*chuchote* T\'as vraiment vu L\'Infiltrée avant ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*chuchote* Trois fois. Le silence maintenant.'},
+      {sp:'narr', text:'Le film commence. L\'Infiltrée : une espionne française. Double identité. Marseille, 1984. Chef d\'œuvre absolu.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*20 minutes plus tard, chuchote* Oh. Oh c\'est... c\'est trop beau. Je comprends maintenant.'},
+      {sp:'marcacrin', ac:'left', imgL:M.photo, text:'*fixe l\'écran sans un seul mouvement*'},
+      {sp:'narr', text:'La scène finale. La protagoniste se retourne. Regarde caméra. Une larme. Fondu au noir.'},
+      {sp:'chaos', ac:'right', imgR:C.dort, text:'*renifle doucement* ...C\'est beau.'},
+      {sp:'narr', text:'À côté de lui, dans le noir de la salle — quelque chose brille sur la joue de Marcacrin.'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'*très bas* ...C\'est un bon film.'},
+      {sp:'narr', text:'Ils restent jusqu\'au dernier générique. Ça, c\'est du respect.'},
+    ],
+    ending:'ending_cinema'
+  },
+
+  haiti_scene: {
+    bg:'bg-village', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Port-au-Prince. Un autre portail du Vieux Sage, encore ouvert. Un marché à l\'aube, couleurs vives, voix qui s\'appellent, odeur de friture dans l\'air chaud.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*yeux grands ouverts* C\'est BEAU ! Les couleurs ! Les gens ! Écoute la musique !'},
+      {sp:'marcacrin', ac:'left', imgL:M.def, text:'*renifle* ...Je sens quelque chose de très bien.'},
+      {sp:'narr', text:'Un étal. Griot croustillant. Riz djon djon aux champignons noirs. Pikliz pimenté. Akra dorés.'},
+      {sp:'chaos', ac:'right', imgR:C.affame, text:'*en transe* Qu\'est-ce que c\'est que tout ça ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.affame, text:'*commande en mimant* Un de tout. Deux de ça. Et encore ça.'},
+      {sp:'narr', text:'Le griot arrive. Marcacrin ferme les yeux à la première bouchée.'},
+      {sp:'marcacrin', ac:'left', imgL:M.fleurs, text:'...Oh.'},
+      {sp:'chaos', ac:'right', imgR:C.content, text:'*danse légèrement sur la musique* C\'est du kompa ! Marcacrin bouge ta tête au moins !'},
+      {sp:'marcacrin', ac:'left', imgL:M.content, text:'*une oreille bouge imperceptiblement au rythme* ...J\'mange.'},
+      {sp:'narr', text:'Ils resteront trois heures. Chaos dansera. Marcacrin mangera. Deux façons différentes d\'être heureux au même endroit.'},
+    ],
+    ending:'ending_haiti'
+  },
+
+  pokemon_scene: {
+    bg:'bg-cave', progress:1,
+    left:{char:'marcacrin'}, right:{char:'chaos'},
+    dialog:[
+      {sp:'narr', text:'Samedi. Chez Marcacrin. La grotte est plongée dans une semi-obscurité apaisante. Sur la table : une Nintendo Switch.'},
+      {sp:'chaos', ac:'right', imgR:C.gaming, text:'POKÉMON POKOPIA ! J\'ai entendu que c\'était le meilleur épisode !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.gaming, text:'*prend la manette sans dire un mot* Quelle équipe tu veux.'},
+      {sp:'chaos', ac:'right', imgR:C.gaming, text:'Le starter FOUGEUX évidemment ! Et toi ?'},
+      {sp:'marcacrin', ac:'left', imgL:M.gaming, text:'*sans hésiter* Le cochon.'},
+      {sp:'chaos', ac:'right', imgR:C.choque, text:'C\'est un pokémon cochon ?!'},
+      {sp:'marcacrin', ac:'left', imgL:M.gaming, text:'Il s\'appelle Grodou. Il est très fort.'},
+      {sp:'narr', text:'Quatre heures plus tard. Chaos est au niveau 23. Marcacrin est au niveau 47.'},
+      {sp:'chaos', ac:'right', imgR:C.enerve, text:'MAIS COMMENT T\'ES AUSSI EN AVANCE ?! T\'AS PAS BOUGÉ DE TON CANAPÉ !!'},
+      {sp:'marcacrin', ac:'left', imgL:M.gaming, text:'*yeux fixés sur l\'écran* J\'optimise.'},
+      {sp:'narr', text:'Minuit. Chaos dort sur le canapé, manette en main, niveau 61. Marcacrin bat le Champion de la Ligue.'},
+      {sp:'marcacrin', ac:'left', imgL:M.dort, text:'*très bas* ...Je vais dormir.'},
+      {sp:'narr', text:'Il dormait en souriant. Chose rarissime. Grodou niveau 100 sur l\'écran.'},
+    ],
+    ending:'ending_pokopia'
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+//  LOCAL STORAGE
+// ══════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'marcacrin2_endings';
+function getUnlocked() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch(e){ return {}; } }
+function unlockEnding(id) { const u=getUnlocked(); u[id]=true; localStorage.setItem(STORAGE_KEY,JSON.stringify(u)); }
+function isUnlocked(id) { return !!getUnlocked()[id]; }
+function countUnlocked(ids) { const u=getUnlocked(); return ids.filter(id=>u[id]).length; }
+
+// ══════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════
+let state = { mode:null, scene:null, dialogIdx:0, typing:false };
+let typeTO = null, fullText = '', charIdx = 0;
+
+// ══════════════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MENU
+// ══════════════════════════════════════════════════════════════
+function renderMenu() {
+  setBg('bg-dark'); generateEnv('dark');
+  const container = document.getElementById('mode-cards');
+  container.innerHTML = '';
+  MODES.forEach(m => {
+    const unlocked = countUnlocked(m.endings);
+    const total = m.endings.length;
+    const card = document.createElement('div');
+    card.className = 'mode-card';
+    card.style.setProperty('--c', m.color);
+    card.style.setProperty('--cr', m.cr);
+
+    // Character image
+    const charSlot = document.createElement('div');
+    charSlot.className = 'card-char';
+    if (m.char === 'both') {
+      // Show both chars smaller
+      ['marcacrin','chaos'].forEach(c => {
+        const img = document.createElement('img');
+        img.src = CHARS[c].img;
+        img.style.cssText='max-height:80px;max-width:68px;';
+        charSlot.appendChild(img);
+      });
+    } else {
+      const img = document.createElement('img');
+      img.src = CHARS[m.char].img;
+      charSlot.appendChild(img);
+    }
+
+    card.innerHTML = `
+      <div class="card-badge">${unlocked}/${total} fins</div>
+      ${charSlot.outerHTML}
+      <div class="card-num">${m.num}</div>
+      <div class="card-title">${m.title}</div>
+      <div class="card-sub">${m.sub}</div>
+    `;
+    card.querySelector('.card-char').replaceWith(charSlot);
+    card.onclick = () => startGame(m.id);
+    container.appendChild(card);
+  });
+
+  // Esquimaux mini-game card
+  const esqBest = parseInt(localStorage.getItem('marcacrin2_esq_best') || '0');
+  const esqCard = document.createElement('div');
+  esqCard.className = 'mode-card esq-card';
+  esqCard.style.setProperty('--c', '#c9a84c');
+  esqCard.style.setProperty('--cr', '201,168,76');
+  const esqCharSlot = document.createElement('div');
+  esqCharSlot.className = 'card-char';
+  const esqImg = document.createElement('img');
+  esqImg.src = M.farceur;
+  esqImg.style.cssText = 'max-height:80px;max-width:68px;';
+  esqCharSlot.appendChild(esqImg);
+  esqCard.innerHTML = `
+    <div class="card-badge">🏆 Record : ${esqBest}</div>
+    ${esqCharSlot.outerHTML}
+    <div class="card-num">Mini-jeu</div>
+    <div class="card-title">Esquimaux</div>
+    <div class="card-sub">Tape sur Marcacrin — 30 secondes chrono !</div>
+  `;
+  esqCard.onclick = () => transition(() => { setBg('bg-dark'); generateEnv('dark'); esqInit(); showScreen('s-esquimaux'); });
+  container.appendChild(esqCard);
+
+  showScreen('s-menu');
+}
+
+function showMenu() { renderMenu(); }
+function goToMenu() { transition(() => renderMenu()); }
+
+// ══════════════════════════════════════════════════════════════
+//  ENDINGS GALLERY
+// ══════════════════════════════════════════════════════════════
+function showEndingsGallery() {
+  const allIds = Object.keys(ENDINGS);
+  const totalUnlocked = countUnlocked(allIds);
+  document.getElementById('gallery-total').textContent = `${totalUnlocked} / ${allIds.length} débloquées`;
+
+  const content = document.getElementById('gallery-content');
+  content.innerHTML = '';
+
+  MODES.forEach(m => {
+    const section = document.createElement('div');
+    section.className = 'gallery-mode';
+    section.innerHTML = `<div class="gallery-mode-title">${m.num} — ${m.title}</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'endings-grid';
+    m.endings.forEach(eid => {
+      const e = ENDINGS[eid];
+      const unlocked = isUnlocked(eid);
+      const card = document.createElement('div');
+      card.className = 'end-card ' + (unlocked ? 'unlocked' : 'locked');
+      if (unlocked) {
+        card.innerHTML = `<div class="end-badge">${e.badge}</div><div class="end-title">${e.title}</div><div class="end-desc">${e.desc.slice(0,60)}...</div>`;
+        card.onclick = () => openEndDetail(eid);
+      } else {
+        card.innerHTML = `<div class="end-lock">🔒</div><div class="end-title" style="color:var(--dim)">???</div><div class="end-desc">À débloquer en jouant</div>`;
+      }
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    content.appendChild(section);
+  });
+
+  showScreen('s-endings');
+  setBg('bg-dark'); generateEnv('dark');
+}
+
+function openEndDetail(eid) {
+  const e = ENDINGS[eid];
+  document.getElementById('det-badge').textContent = e.badge;
+  document.getElementById('det-title').textContent = e.title;
+  document.getElementById('det-desc').textContent = e.desc;
+  document.getElementById('end-detail').classList.add('open');
+}
+function closeEndDetail() { document.getElementById('end-detail').classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════════════
+//  ENVIRONMENT
+// ══════════════════════════════════════════════════════════════
+function setBg(cls) {
+  const bg = document.getElementById('bg');
+  bg.className = cls;
+}
+
+function generateEnv(type) {
+  const bg = document.getElementById('bg');
+  // Clear dynamic elements
+  bg.querySelectorAll('.star,.env-moon,.env-firefly,.env-sun,.env-snowflake').forEach(e=>e.remove());
+
+  const starCount = type==='shadow'?20 : type==='desert'?15 : 55;
+  for (let i=0; i<starCount; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random()*2+0.8;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*65}%;width:${sz}px;height:${sz}px;--d:${2+Math.random()*4}s;--o:${0.3+Math.random()*0.7};animation-delay:${Math.random()*4}s;`;
+    bg.appendChild(s);
+  }
+  if (type !== 'desert') {
+    const moon = document.createElement('div');
+    moon.className = 'env-moon';
+    bg.appendChild(moon);
+  }
+  if (type === 'desert') {
+    const sun = document.createElement('div');
+    sun.className = 'env-sun';
+    bg.appendChild(sun);
+  }
+  if (type === 'forest') {
+    for (let i=0; i<7; i++) {
+      const f = document.createElement('div');
+      f.className = 'env-firefly';
+      f.style.cssText=`left:${20+Math.random()*60}%;top:${30+Math.random()*45}%;--d:${3+Math.random()*4}s;--dx:${(Math.random()-.5)*60}px;--dy:${(Math.random()-.5)*40}px;animation-delay:${Math.random()*4}s;`;
+      bg.appendChild(f);
+    }
+  }
+  if (type === 'mountain' || type === 'icecave' || type === 'cliff') {
+    for (let i=0; i<12; i++) {
+      const sf = document.createElement('div');
+      sf.className = 'env-snowflake';
+      sf.textContent = ['❄','✦','*','·'][Math.floor(Math.random()*4)];
+      sf.style.cssText=`left:${Math.random()*100}%;top:-20px;--d:${6+Math.random()*8}s;animation-delay:${Math.random()*8}s;font-size:${10+Math.random()*8}px;`;
+      bg.appendChild(sf);
+    }
+  }
+}
+
+const BG_ENV_MAP = {
+  'bg-cave':'cave','bg-village':'village','bg-forest':'forest','bg-shadow':'shadow',
+  'bg-river':'river','bg-desert':'desert','bg-ruins':'ruins','bg-oasis':'forest',
+  'bg-mountain':'mountain','bg-icecave':'icecave','bg-cliff':'cliff','bg-dark':'dark',
+  'bg-pitch':'village',
+};
+
+// ══════════════════════════════════════════════════════════════
+//  GAME ENGINE
+// ══════════════════════════════════════════════════════════════
+function startGame(modeId) {
+  state.mode = modeId;
+  const mode = MODES.find(m=>m.id===modeId);
+  document.getElementById('mode-label').textContent = mode.title.slice(0,18)+'…';
+  transition(() => {
+    showScreen('s-game');
+    loadScene(mode.startScene);
+  });
+}
+
+function retryMode() {
+  document.getElementById('ending-reveal').classList.remove('open');
+  const mode = MODES.find(m=>m.id===state.mode);
+  if (mode) loadScene(mode.startScene);
+}
+
+function loadScene(sceneId) {
+  state.scene = sceneId;
+  state.dialogIdx = 0;
+  const scene = SCENES[sceneId];
+
+  setBg(scene.bg);
+  generateEnv(BG_ENV_MAP[scene.bg]||'dark');
+  setProgress(scene.progress||0);
+  clearHotspots();
+
+  // Characters
+  setupChar('left', scene.left);
+  setupChar('right', scene.right);
+
+  startDialog();
+}
+
+function setupChar(side, cfg) {
+  const slot = document.getElementById('char-'+side);
+  const img  = document.getElementById('img-'+side);
+  const name = document.getElementById('name-'+side);
+  if (!cfg) {
+    slot.classList.add('hidden');
+    return;
+  }
+  const c = CHARS[cfg.char];
+  img.src = c.img;
+  img.alt = c.name;
+  img.onerror = () => { img.src=''; img.style.display='none'; };
+  name.textContent = c.name;
+  name.className = 'char-name '+c.cls;
+  slot.style.setProperty('--glow', c.glow);
+  slot.classList.remove('hidden','active','dimmed');
+}
+
+function setProgress(n) {
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('p'+i);
+    d.className='dot';
+    if(i<n) d.classList.add('done');
+    else if(i===n) d.classList.add('current');
+  }
+}
+
+// ── Dialog ──────────────────────────────────────────────────
+function startDialog() { showNextLine(); }
+
+function showNextLine() {
+  const scene = SCENES[state.scene];
+  if (!scene) return;
+  if (state.dialogIdx >= scene.dialog.length) {
+    // Done — show hotspots or trigger ending
+    if (scene.ending) {
+      setTimeout(() => triggerEnding(scene.ending), 600);
+    } else if (scene.hotspots) {
+      document.getElementById('continue-hint').classList.remove('visible');
+      showHotspots(scene.hotspots);
+    }
+    return;
+  }
+
+  const line = scene.dialog[state.dialogIdx++];
+  const tag = document.getElementById('speaker-tag');
+
+  if (line.sp === 'narr') {
+    tag.textContent = '✦ Narration';
+    tag.className = 'narr';
+  } else {
+    const c = CHARS[line.sp];
+    tag.textContent = c.tag + ' ' + c.name;
+    tag.className = line.sp;
+  }
+
+  // Character active state
+  const leftCfg  = SCENES[state.scene].left;
+  const rightCfg = SCENES[state.scene].right;
+  const leftEl  = document.getElementById('char-left');
+  const rightEl = document.getElementById('char-right');
+  leftEl.classList.remove('active','dimmed');
+  rightEl.classList.remove('active','dimmed');
+
+  // Contextual image overrides
+  if (line.imgL && leftCfg)  { const el=document.getElementById('img-left');  if(el) el.src=line.imgL; }
+  if (line.imgR && rightCfg) { const el=document.getElementById('img-right'); if(el) el.src=line.imgR; }
+
+  if (line.ac === 'left') {
+    leftEl.classList.add('active');
+    if (rightCfg) rightEl.classList.add('dimmed');
+  } else if (line.ac === 'right') {
+    rightEl.classList.add('active');
+    if (leftCfg) leftEl.classList.add('dimmed');
+  }
+
+  typeText(line.text);
+}
+
+function typeText(text) {
+  fullText = text; charIdx = 0; state.typing = true;
+  clearTimeout(typeTO);
+  document.getElementById('continue-hint').classList.remove('visible');
+  const el = document.getElementById('dialog-text');
+  el.innerHTML = '';
+  function tick() {
+    if (charIdx >= fullText.length) {
+      state.typing = false;
+      el.innerHTML = fullText + '<span class="cursor-blink"></span>';
+      document.getElementById('continue-hint').classList.add('visible');
+      return;
+    }
+    charIdx++;
+    el.textContent = fullText.slice(0, charIdx);
+    const ch = fullText[charIdx-1];
+    const delay = ch==='.'||ch==='!'||ch==='?'?65 : ch===','?32 : 16;
+    typeTO = setTimeout(tick, delay);
+  }
+  tick();
+}
+
+function advanceDialog() {
+  if (state.typing) {
+    clearTimeout(typeTO); state.typing = false;
+    document.getElementById('dialog-text').innerHTML = fullText + '<span class="cursor-blink"></span>';
+    document.getElementById('continue-hint').classList.add('visible');
+    return;
+  }
+  if (document.getElementById('hotspot-zone').classList.contains('active')) return;
+  showNextLine();
+}
+
+// ── Hotspots ─────────────────────────────────────────────────
+function showHotspots(hotspots) {
+  const zone = document.getElementById('hotspot-zone');
+  zone.innerHTML = '';
+  zone.classList.add('active');
+
+  hotspots.forEach((h, i) => {
+    // Handle __end__ shorthand
+    const next = h.next;
+
+    const div = document.createElement('div');
+    div.className = 'hotspot hotspot-pulse';
+    const p = h.pos;
+    div.style.cssText = `
+      left:${p.l||'auto'}; right:${p.r||'auto'};
+      top:${p.t||'15%'}; width:${p.w}; height:${p.h};
+    `;
+
+    div.innerHTML = `
+      <div class="hotspot-icon">${h.icon}</div>
+      <div class="hotspot-label">${h.label}</div>
+    `;
+
+    div.addEventListener('click', () => selectHotspot(next));
+    // Stagger appearance
+    div.style.transition = `all 0.4s ease ${i*0.12}s`;
+    requestAnimationFrame(() => div.classList.add('visible'));
+
+    zone.appendChild(div);
+  });
+}
+
+function clearHotspots() {
+  const zone = document.getElementById('hotspot-zone');
+  zone.classList.remove('active');
+  zone.innerHTML = '';
+}
+
+function selectHotspot(next) {
+  if (next.startsWith('__end__')) {
+    clearHotspots();
+    triggerEnding(next.replace('__end__',''));
+    return;
+  }
+  clearHotspots();
+  transition(() => loadScene(next));
+}
+
+// ── Ending ───────────────────────────────────────────────────
+function triggerEnding(endingId) {
+  unlockEnding(endingId);
+  const e = ENDINGS[endingId];
+  document.getElementById('rev-badge').textContent = e.badge;
+  document.getElementById('rev-title').textContent = e.title;
+  document.getElementById('rev-desc').textContent = e.desc;
+  document.getElementById('ending-reveal').classList.add('open');
+}
+
+// ── Transition ───────────────────────────────────────────────
+function transition(fn) {
+  const ov = document.getElementById('overlay');
+  ov.classList.add('on');
+  setTimeout(() => {
+    fn();
+    setTimeout(() => ov.classList.remove('on'), 100);
+  }, 450);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key===' '||e.key==='Enter') {
+    if (document.getElementById('s-game').classList.contains('active')) advanceDialog();
+  }
+  if (e.key==='Escape') {
+    if (document.getElementById('end-detail').classList.contains('open')) closeEndDetail();
+    else if (document.getElementById('ending-reveal').classList.contains('open')) {
+      document.getElementById('ending-reveal').classList.remove('open');
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  ESQUIMAUX MINI-GAME
+// ══════════════════════════════════════════════════════════════
+const ESQ_KEY = 'marcacrin2_esq_best';
+let esqScore = 0, esqTimeLeft = 30, esqRunning = false, esqInterval = null, esqFeedbackTO = null;
+
+const ESQ_IMGS = [M.def, M.enerve, M.farceur, M.fleurs, M.chante];
+let esqImgIdx = 0;
+
+function esqInit() {
+  esqScore = 0; esqTimeLeft = 30; esqRunning = false;
+  clearInterval(esqInterval);
+  document.getElementById('esq-timer').textContent = '30';
+  document.getElementById('esq-timer').classList.remove('urgent');
+  document.getElementById('esq-score-val').textContent = '0';
+  document.getElementById('esq-img').src = M.def;
+  document.getElementById('esq-feedback').classList.remove('pop');
+  document.getElementById('esq-waiting').style.display = '';
+  document.getElementById('esq-result').classList.remove('show');
+  document.getElementById('esq-char').style.pointerEvents = 'none';
+  const best = parseInt(localStorage.getItem(ESQ_KEY)||'0');
+  document.getElementById('esq-best-val').textContent = best;
+}
+
+function esqStart() {
+  esqScore = 0; esqTimeLeft = 30; esqRunning = true;
+  document.getElementById('esq-waiting').style.display = 'none';
+  document.getElementById('esq-result').classList.remove('show');
+  document.getElementById('esq-score-val').textContent = '0';
+  document.getElementById('esq-timer').textContent = '30';
+  document.getElementById('esq-timer').classList.remove('urgent');
+  document.getElementById('esq-img').src = M.def;
+  document.getElementById('esq-char').style.pointerEvents = '';
+  clearInterval(esqInterval);
+  esqInterval = setInterval(() => {
+    esqTimeLeft--;
+    document.getElementById('esq-timer').textContent = esqTimeLeft;
+    if (esqTimeLeft <= 10) document.getElementById('esq-timer').classList.add('urgent');
+    if (esqTimeLeft <= 0) {
+      clearInterval(esqInterval);
+      esqRunning = false;
+      esqEnd();
+    }
+  }, 1000);
+}
+
+function esqClick() {
+  if (!esqRunning) return;
+  esqScore++;
+  document.getElementById('esq-score-val').textContent = esqScore;
+
+  // Cycle through Marcacrin expressions
+  esqImgIdx = (esqImgIdx + 1) % ESQ_IMGS.length;
+  document.getElementById('esq-img').src = ESQ_IMGS[esqImgIdx];
+
+  // Bounce animation
+  const ch = document.getElementById('esq-char');
+  ch.classList.add('hit');
+  setTimeout(() => ch.classList.remove('hit'), 100);
+
+  // Feedback text
+  const fb = document.getElementById('esq-feedback');
+  const msgs = ['+1','Ouille !','Aïe !','Hé !','...','Mmmpf !'];
+  fb.textContent = msgs[esqScore % msgs.length];
+  fb.classList.add('pop');
+  clearTimeout(esqFeedbackTO);
+  esqFeedbackTO = setTimeout(() => fb.classList.remove('pop'), 400);
+}
+
+function esqEnd() {
+  document.getElementById('esq-char').style.pointerEvents = 'none';
+  document.getElementById('esq-img').src = M.dort;
+  document.getElementById('esq-result-score').textContent = esqScore;
+
+  const prev = parseInt(localStorage.getItem(ESQ_KEY)||'0');
+  const isRecord = esqScore > prev;
+  if (isRecord) localStorage.setItem(ESQ_KEY, esqScore);
+  document.getElementById('esq-best-val').textContent = Math.max(esqScore, prev);
+  document.getElementById('esq-result-record').classList.toggle('show', isRecord);
+  document.getElementById('esq-result').classList.add('show');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+renderMenu();
+</script>
+</body>
+</html>
