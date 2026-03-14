@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where node:*)",
+      "Bash(find C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2 -name *.png -o -name *.jpg -o -name *.jpeg -o -name *.gif -o -name *.webp)",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/chaos_affame.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/chaos_coree.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/chaos_enerve.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/chaos_gaming_switch.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/marcacrin_content.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/marcacrin_coree.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/marcacrin_farceur.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/marcacrin_football.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")",
+      "Bash(cp \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/img/marcacrin_gaming_switch.png\" \"C:/Users/nassi/Desktop/Projets_informatiques/LesAventuresDeMarcacrin2/.claude/worktrees/zealous-hellman/img/\")"
+    ]
+  }
+}
